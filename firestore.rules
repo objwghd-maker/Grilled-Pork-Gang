@@ -12,7 +12,13 @@ service cloud.firestore {
     function isMember(roomId) {
       return signedIn()
         && exists(roomPath(roomId))
-        && request.auth.uid in get(roomPath(roomId)).data.members;
+        && (
+          get(roomPath(roomId)).data.ownerUid == request.auth.uid
+          || (
+            get(roomPath(roomId)).data.members is list
+            && request.auth.uid in get(roomPath(roomId)).data.members
+          )
+        );
     }
 
     function validInvite(roomId, token) {
