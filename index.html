@@ -623,13 +623,83 @@ button{touch-action:manipulation}
   #chatPrepImg{width:min(82vw,360px);max-height:min(50vh,360px)}
 }
 
+
+#chatLobby[hidden],#chatConversation[hidden]{display:none!important}
+#chatLobby:not([hidden]),#chatConversation:not([hidden]){display:block!important}
+#chatConvStatus{font-size:12px;color:#aab5c8}
+#chatSendButton:disabled{opacity:.55}
 /* harden chat prep / shell visibility */
 #page-chat #chatPrep{display:flex!important}
 #page-chat #chatMainShell{display:none!important}
 #page-chat #chatMainShell.active{display:flex!important}
 html.chat-fullscreen #siteApp .topbar,
 html.chat-fullscreen #siteApp .drawer{visibility:hidden!important;pointer-events:none!important}
-html.chat-fullscreen #authTop{z-index:1}
+html.chat-fullscreen #authTop{z-index:2147483001}
+</style>
+
+<style id="gmp-single-page-lock">
+#siteApp .page{display:none!important;visibility:hidden!important;pointer-events:none!important}
+#siteApp .page.active{display:block!important;visibility:visible!important;pointer-events:auto!important}
+#page-fishing.active,#page-mongkol.active,#page-chat.active{display:block!important}
+#chatMainShell:not(.active){display:none!important;pointer-events:none!important}
+#fishGameContainer:not(.active){display:none!important;pointer-events:none!important}
+#mongkolGameFrame[hidden],#mongkolGameFrame[style*="display: none"]{pointer-events:none!important}
+html.chat-fullscreen #siteApp .topbar,
+html.chat-fullscreen #siteApp .drawer,
+html.fish-fullscreen #siteApp .topbar,
+html.fish-fullscreen #siteApp .drawer{
+  visibility:hidden!important;pointer-events:none!important;
+}
+#siteApp .drawer:not(.open){visibility:hidden!important;pointer-events:none!important}
+</style>
+
+<style id="report-bug-widget">
+#authTop{display:none;align-items:center;gap:8px}
+html.in.logged #authTop,html.in.guest #authTop{display:flex!important;visibility:visible!important;pointer-events:auto!important}
+#reportBugBtn{
+  width:46px;height:46px;border:2px solid rgba(255,255,255,.35);border-radius:50%;
+  background:#111;padding:6px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;overflow:hidden;flex:0 0 auto;box-sizing:border-box;
+  box-shadow:0 0 0 3px rgba(255,152,0,.10),0 4px 14px rgba(0,0,0,.12);
+}
+#reportBugBtn img{
+  width:100%;height:100%;object-fit:contain;object-position:center;
+  /* ตัดพื้น เหลือโลโก้ขาว */
+  filter:brightness(0) invert(1);
+  pointer-events:none;user-select:none;-webkit-user-drag:none;
+}
+#reportBugBtn:active{transform:scale(.96)}
+@media(max-height:520px){#reportBugBtn{width:42px;height:42px}}
+#reportBugMenu{
+  position:fixed;right:12px;top:68px;width:min(320px,calc(100vw - 24px));
+  padding:14px;background:#1a1d24;color:#fff;border:1px solid #ff9800;border-radius:14px;
+  box-shadow:0 12px 36px #0006;z-index:130;box-sizing:border-box;
+  display:none;visibility:hidden;pointer-events:none;opacity:0;
+  transform:translate3d(0,-8px,0) scale(.98);
+  transition:transform .2s ease,opacity .18s ease,visibility 0s linear .2s;
+}
+#reportBugMenu.open{
+  display:block;visibility:visible;pointer-events:auto;opacity:1;
+  transform:translate3d(0,0,0) scale(1);
+  transition:transform .2s ease,opacity .18s ease,visibility 0s;
+}
+#reportBugMenu .reportBugTitle{font-weight:800;font-size:15px;margin-bottom:6px}
+#reportBugMenu .reportBugHint{font-size:12px;color:#b0b6c0;line-height:1.45;margin:0 0 10px}
+#reportBugMenu textarea{
+  width:100%;box-sizing:border-box;min-height:88px;resize:vertical;
+  border:1px solid #555;border-radius:10px;padding:10px;background:#0e1016;color:#fff;
+  font:inherit;margin:0 0 10px;
+}
+#reportBugMenu textarea:focus{outline:none;border-color:#ff9800}
+#reportBugMenu .reportBugSendBtn{
+  width:100%;border:0;border-radius:10px;padding:11px 14px;
+  background:linear-gradient(135deg,#ffad25,#ff8b00);color:#111;font:inherit;font-weight:800;cursor:pointer;
+}
+#reportBugMenu .reportBugSendBtn:disabled{opacity:.55;cursor:wait}
+#reportBugMenu .reportBugStatus{font-size:12px;color:#aab5c8;margin-top:8px;min-height:16px;line-height:1.4}
+html.chat-fullscreen #reportBugBtn,html.fish-fullscreen #reportBugBtn{/* ยังโชว์บนแถบ auth */ }
+html.chat-fullscreen #authTop,html.fish-fullscreen #authTop{z-index:2147483001!important}
+#reportBugMenu{z-index:2147483010}
 </style>
 </head>
 <body>
@@ -649,7 +719,17 @@ html.chat-fullscreen #authTop{z-index:1}
 <div id="authTop">
   <div id="scoreArea"><span>คะแนน</span><span id="scoreValue">0</span></div>
   <button id="scoreAdd" type="button" aria-label="เพิ่มคะแนน" title="แตะเพื่อเพิ่มคะแนน">+</button>
+  <button id="reportBugBtn" type="button" aria-label="รายงานปัญหา" title="รายงานปัญหาเว็บไซต์">
+    <img src="https://i.postimg.cc/13jjTmz2/file-0000000038308211bf2045968cfd9ca0.png" alt="รายงานปัญหา" draggable="false">
+  </button>
   <button id="profileBtn" type="button" aria-label="โปรไฟล์" title="โปรไฟล์">👤</button>
+</div>
+<div id="reportBugMenu" aria-label="รายงานปัญหาเว็บไซต์" hidden>
+  <div class="reportBugTitle">รายงานปัญหาเว็บไซต์</div>
+  <p class="reportBugHint">พิมพ์ปัญหาที่พบ แล้วกดส่ง — ข้อความจะเข้าห้องแอดมิน</p>
+  <textarea id="reportBugText" maxlength="2000" rows="4" placeholder="อธิบายปัญหาที่พบ…"></textarea>
+  <button type="button" id="reportBugSend" class="reportBugSendBtn">ส่งรายงาน</button>
+  <div id="reportBugStatus" class="reportBugStatus" role="status"></div>
 </div>
 <div id="profileMenu" aria-label="เมนูโปรไฟล์">
   <div id="profileMenuName" style="font-weight:700;overflow-wrap:anywhere">ยังไม่ได้ลงชื่อเข้าใช้</div>
@@ -760,6 +840,7 @@ html.chat-fullscreen #authTop{z-index:1}
           </div>
           <div class="chatPanel chatConversation" id="chatConversation" hidden>
             <div class="chatRoomHeader"><button id="chatBackLobby" class="chatIconButton" type="button" aria-label="กลับ">‹</button><div class="chatRoomTitle"><h2 id="chatCurrentName">ห้องพูดคุย</h2><div id="chatRoomMeta" class="chatMuted"></div></div><button id="chatRoomSettingsToggle" class="chatIconButton" type="button" aria-label="ตั้งค่าห้อง">⚙</button></div>
+            <div id="chatConvStatus" class="chatHint" role="status" style="padding:8px 12px;margin:0;border-bottom:1px solid #ffffff15">พร้อมส่งข้อความ</div>
             <div id="chatRoomSettings" class="chatRoomSettings" hidden><label class="chatLabel" for="chatRename">ชื่อห้อง</label><input id="chatRename" maxlength="48" placeholder="ชื่อห้อง"><div class="chatSettingsActions"><button id="chatSaveRoomName" class="chatSecondary" type="button">บันทึกชื่อ</button><button id="chatCopyCode" class="chatSecondary" type="button">คัดลอกรหัส</button><button id="chatCopyInvite" class="chatPrimary" type="button">คัดลอกลิงก์เชิญ</button></div><h3>สมาชิก</h3><div id="chatMembers" class="chatMembers"></div><button id="chatLeaveRoom" class="chatDanger" type="button">ออกจากห้อง</button><button id="chatDeleteRoom" class="chatDanger" type="button" hidden>ลบห้อง (เจ้าของ)</button></div>
             <div id="chatMessages" class="chatMessages"><p class="chatMuted">กำลังโหลดข้อความ…</p></div>
             <form id="chatSendForm" class="chatSendForm"><textarea id="chatMessageInput" rows="1" maxlength="2000" placeholder="พิมพ์ข้อความ…" required></textarea><button class="chatPrimary" id="chatSendButton" type="submit">ส่ง</button></form>
@@ -1503,7 +1584,10 @@ $("scoreAdd").onclick = async () => {
   } catch(error) { scoreCloudReady = false; }
 };
 
-$("profileBtn").onclick = () => $("profileMenu").classList.toggle("open");
+$("profileBtn").onclick = () => {
+  try{ const r=$("reportBugMenu"); if(r){ r.classList.remove("open"); r.hidden=true; } }catch(e){}
+  $("profileMenu").classList.toggle("open");
+};
 document.addEventListener("click", e => {
   if(!$("profileMenu").contains(e.target) && !$("profileBtn").contains(e.target)){
     $("profileMenu").classList.remove("open");
@@ -1654,7 +1738,10 @@ const chatState={roomId:null,room:null,roomUnsub:null,msgUnsub:null,roomsUnsub:n
 const chatEl=id=>document.getElementById(id);
 const chatName=()=>String(cloudProfile.displayName||currentUser?.displayName||currentUser?.email?.split('@')[0]||'สมาชิก').slice(0,60);
 const chatRoomRef=id=>doc(db,'chatRooms',id);
-function chatStatus(message){const el=chatEl('chatStatus');if(el)el.textContent=message}
+function chatStatus(message){
+  const el=chatEl('chatStatus'); if(el) el.textContent=message;
+  const c=chatEl('chatConvStatus'); if(c) c.textContent=message;
+}
 function chatCode(){const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let out='';for(let i=0;i<8;i++)out+=chars[Math.floor(Math.random()*chars.length)];return out}
 function chatInviteUrl(roomId,token){const u=new URL(location.href);u.search='';u.hash='';u.searchParams.set('room',roomId);u.searchParams.set('invite',token);return u.toString()}
 function chatToken(){const a=new Uint8Array(24);crypto.getRandomValues(a);return Array.from(a,b=>b.toString(16).padStart(2,'0')).join('')}
@@ -1691,8 +1778,75 @@ function chatOpenProfileView(uid,name,photoURL){
 function chatRenderMessages(snap){const host=chatEl('chatMessages');if(!host)return;host.replaceChildren();if(snap.empty){const p=document.createElement('p');p.className='chatMuted';p.textContent='ยังไม่มีข้อความ เริ่มทักทายกันได้เลย';host.append(p);return}snap.forEach(d=>{const m=d.data()||{};const wrap=document.createElement('div');wrap.className='chatMessage'+(m.uid===currentUser?.uid?' mine':'');const row=document.createElement('div');row.className='chatMessageRow';const av=document.createElement('button');av.type='button';av.className='chatMsgAvatar'+(chatPhotoOf(m)?'':' placeholder');av.setAttribute('aria-label','ดูโปรไฟล์');const photo=chatPhotoOf(m);if(photo){const im=document.createElement('img');im.src=photo;im.alt='';im.referrerPolicy='no-referrer';av.appendChild(im);}else{av.textContent='👤';}av.addEventListener('click',()=>chatOpenProfileView(m.uid,m.name||'สมาชิก',photo));const bubble=document.createElement('div');bubble.className='chatMessageBubble';const author=document.createElement('div');author.className='chatMessageAuthor';author.textContent=m.name||'สมาชิก';author.addEventListener('click',()=>chatOpenProfileView(m.uid,m.name||'สมาชิก',photo));const body=document.createElement('div');body.textContent=m.text||'';const time=document.createElement('div');time.className='chatMessageTime';time.textContent=m.createdAt&&typeof m.createdAt.toDate==='function'?m.createdAt.toDate().toLocaleString('th-TH',{hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'}):'ส่งแล้ว';bubble.append(author,body,time);row.append(av,bubble);wrap.append(row);host.append(wrap)});host.scrollTop=host.scrollHeight}
 function chatRenderMembers(room){const host=chatEl('chatMembers');if(!host)return;host.replaceChildren();const members=Array.isArray(room.members)?room.members:[];members.forEach(uid=>{const row=document.createElement('div');row.className='chatMember';const label=document.createElement('span');label.textContent=uid===room.ownerUid?'👑 เจ้าของห้อง':uid===currentUser?.uid?'คุณ · สมาชิก':'สมาชิก';row.append(label);if(room.ownerUid===currentUser?.uid&&uid!==currentUser.uid){const kick=document.createElement('button');kick.type='button';kick.textContent='นำออก';kick.onclick=async()=>{if(!confirm('นำสมาชิกคนนี้ออกจากห้องหรือไม่?'))return;try{await updateDoc(chatRoomRef(room.id),{members:arrayRemove(uid),updatedAt:serverTimestamp()});chatStatus('นำสมาชิกออกจากห้องแล้ว')}catch(e){chatStatus('นำสมาชิกออกไม่ได้ ตรวจสอบกฎ Firestore')}};row.append(kick)}host.append(row)});if(!members.length){host.textContent='ไม่มีสมาชิก';}}
 function chatApplyRoom(room){chatState.room=room;chatEl('chatCurrentName').textContent=room.name||'ห้องพูดคุย';chatEl('chatRoomMeta').textContent=`รหัส ${room.code||'—'} · ${Array.isArray(room.members)?room.members.length:0} คน` ;chatEl('chatRename').value=room.name||'';chatEl('chatDeleteRoom').hidden=room.ownerUid!==currentUser?.uid;chatEl('chatSaveRoomName').hidden=room.ownerUid!==currentUser?.uid;chatRenderMembers({...room,id:chatState.roomId});}
-async function chatOpenRoom(id){if(!currentUser){chatStatus('ต้องลงชื่อเข้าใช้ Google ก่อนจึงจะเปิดห้องได้');return}try{const snap=await getDoc(chatRoomRef(id));if(!snap.exists()){chatStatus('ไม่พบห้องนี้');return}const room=snap.data()||{};const uid=currentUser.uid;const isOwner=room.ownerUid===uid;let members=Array.isArray(room.members)?room.members:[];if(!members.includes(uid)){if(isOwner){try{await updateDoc(chatRoomRef(id),{members:arrayUnion(uid),updatedAt:serverTimestamp()});members=[...members,uid];}catch(_){}}else{chatStatus('บัญชีนี้ยังไม่ได้รับอนุญาตให้เข้าห้อง');return}}chatStopRoomListeners();chatState.roomId=id;chatEl('chatLobby').hidden=true;chatEl('chatConversation').hidden=false;chatEl('chatRoomSettings').hidden=true;chatApplyRoom({...room,members});chatState.roomUnsub=onSnapshot(chatRoomRef(id),s=>{if(!s.exists()){chatStatus('ห้องนี้ถูกลบแล้ว');chatBackLobby();return}const data=s.data()||{};const stillOwner=data.ownerUid===currentUser.uid;const stillMember=Array.isArray(data.members)&&data.members.includes(currentUser.uid);if(!stillMember&&!stillOwner){chatStatus('คุณถูกนำออกจากห้องแล้ว');chatBackLobby();return}if(!stillMember&&stillOwner){try{updateDoc(chatRoomRef(id),{members:arrayUnion(currentUser.uid)});}catch(_){}}chatApplyRoom(data)},e=>chatStatus('อ่านข้อมูลห้องไม่ได้ ตรวจสอบสิทธิ์ Firestore'));chatState.msgUnsub=onSnapshot(query(collection(db,'chatRooms',id,'messages'),orderBy('createdAt','asc'),limit(100)),chatRenderMessages,e=>chatStatus('โหลดข้อความไม่ได้ ตรวจสอบกฎ Firestore'));chatStatus('เชื่อมต่อห้องแล้ว')}catch(e){chatStatus('เปิดห้องไม่ได้ ตรวจสอบการเชื่อมต่อและกฎ Firestore')}}
-function chatBackLobby(){chatStopRoomListeners();chatState.roomId=null;chatState.room=null;chatEl('chatConversation').hidden=true;chatEl('chatLobby').hidden=false}
+async function chatOpenRoom(id){
+  if(!currentUser){ chatStatus('ต้องลงชื่อเข้าใช้ Google ก่อนจึงจะเปิดห้องได้'); return; }
+  try{
+    const snap=await getDoc(chatRoomRef(id));
+    if(!snap.exists()){ chatStatus('ไม่พบห้องนี้'); return; }
+    const room=snap.data()||{};
+    const uid=currentUser.uid;
+    const isOwner = room.ownerUid===uid;
+    let members = Array.isArray(room.members) ? room.members.slice() : [];
+    if(!members.includes(uid)){
+      if(isOwner){
+        members.push(uid);
+        try{ await updateDoc(chatRoomRef(id), { members: arrayUnion(uid), updatedAt: serverTimestamp() }); }catch(e){ console.warn('heal members', e); }
+      } else {
+        chatStatus('บัญชีนี้ยังไม่ได้รับอนุญาตให้เข้าห้อง');
+        return;
+      }
+    }
+    chatStopRoomListeners();
+    chatState.roomId = id;
+    chatState.room = { ...room, members, id };
+    const lobby=chatEl('chatLobby');
+    const conv=chatEl('chatConversation');
+    if(lobby){ lobby.hidden=true; lobby.style.display='none'; }
+    if(conv){ conv.hidden=false; conv.style.display=''; conv.style.visibility='visible'; }
+    const settings=chatEl('chatRoomSettings'); if(settings) settings.hidden=true;
+    chatApplyRoom({ ...room, members, id });
+    chatState.roomUnsub = onSnapshot(chatRoomRef(id), s=>{
+      if(!s.exists()){ chatStatus('ห้องนี้ถูกลบแล้ว'); chatBackLobby(); return; }
+      const data=s.data()||{};
+      const stillOwner = data.ownerUid===currentUser.uid;
+      const stillMember = Array.isArray(data.members) && data.members.includes(currentUser.uid);
+      if(!stillMember && !stillOwner){ chatStatus('คุณถูกนำออกจากห้องแล้ว'); chatBackLobby(); return; }
+      if(!stillMember && stillOwner){
+        try{ updateDoc(chatRoomRef(id), { members: arrayUnion(currentUser.uid) }); }catch(_){}
+      }
+      chatApplyRoom({ ...data, id });
+    }, e=>chatStatus('อ่านข้อมูลห้องไม่ได้ ตรวจสอบสิทธิ์ Firestore'));
+    chatState.msgUnsub = onSnapshot(
+      query(collection(db,'chatRooms',id,'messages'), orderBy('createdAt','asc'), limit(100)),
+      chatRenderMessages,
+      e=>chatStatus('โหลดข้อความไม่ได้ ตรวจสอบกฎ Firestore')
+    );
+    const sendBtn=chatEl('chatSendButton'); if(sendBtn) sendBtn.disabled=false;
+    const input=chatEl('chatMessageInput'); if(input){ input.disabled=false; input.focus(); }
+    chatStatus(isOwner ? 'เชื่อมต่อแล้ว · คุณเป็นเจ้าของห้อง พิมพ์ข้อความได้เลย' : 'เชื่อมต่อห้องแล้ว พิมพ์ข้อความได้เลย');
+  }catch(e){
+    console.warn('chatOpenRoom', e);
+    chatStatus('เปิดห้องไม่ได้ ตรวจสอบการเชื่อมต่อและกฎ Firestore');
+  }
+}
+function chatBackLobby(){
+  try{ chatStopRoomListeners(); }catch(e){}
+  chatState.roomId=null;
+  chatState.room=null;
+  const conv=chatEl('chatConversation');
+  const lobby=chatEl('chatLobby');
+  const settings=chatEl('chatRoomSettings');
+  if(conv){ conv.hidden=true; conv.style.display='none'; }
+  if(settings){ settings.hidden=true; }
+  if(lobby){ lobby.hidden=false; lobby.style.display=''; lobby.style.visibility='visible'; }
+  // ปลดล็อกปุ่มสร้างห้อง / ส่งข้อความ ที่อาจค้าง disabled
+  const createBtn=chatEl('chatCreateRoom'); if(createBtn) createBtn.disabled=false;
+  const sendBtn=chatEl('chatSendButton'); if(sendBtn) sendBtn.disabled=false;
+  const input=chatEl('chatMessageInput'); if(input) input.value='';
+  const nameIn=chatEl('chatRoomName'); if(nameIn) nameIn.disabled=false;
+  chatStatus('กลับหน้ารายการห้องแล้ว · สร้างหรือเข้าห้องได้เลย');
+  try{ if(typeof chatRefreshRooms==='function' && currentUser) chatRefreshRooms(); }catch(e){}
+}
 function chatRoomsCacheKey(uid){return 'gmp_chat_rooms_v1_'+uid}
 function chatSaveRoomsCache(rooms){
   if(!currentUser) return;
@@ -1740,348 +1894,162 @@ async function chatRefreshRooms(){
   }
 }
 async function chatFindRoom(){if(!currentUser){chatStatus('กรุณาลงชื่อเข้าใช้ Google ก่อน');return}let raw=chatEl('chatFindCode').value.trim();if(!raw){chatStatus('วางลิงก์เชิญจากเจ้าของห้องก่อน');return}try{let roomId='',token='';if(raw.includes('://')){const u=new URL(raw);roomId=u.searchParams.get('room')||'';token=u.searchParams.get('invite')||''}else{chatStatus('เพื่อความเป็นส่วนตัว กรุณาวางลิงก์เชิญเต็ม ไม่ใช่แค่รหัสห้อง');return}if(!roomId||!token){chatStatus('ลิงก์นี้ไม่มีรหัสเชิญที่ถูกต้อง');return}const inv=await getDoc(chatInviteRef(roomId,token));if(!inv.exists()||inv.data().active!==true||inv.data().roomId!==roomId){chatStatus('ลิงก์เชิญไม่ถูกต้องหรือเจ้าของปิดลิงก์แล้ว');return}const invite=inv.data();const box=chatEl('chatFoundRoom');box.replaceChildren();const title=document.createElement('b');title.textContent=invite.roomName||'ห้องพูดคุยส่วนตัว';const detail=document.createElement('p');detail.textContent='ห้องส่วนตัว · ต้องใช้ลิงก์เชิญที่ถูกต้อง';const join=document.createElement('button');join.className='chatPrimary';join.type='button';join.textContent='เข้าร่วมห้องด้วยคำเชิญ';join.onclick=async()=>{join.disabled=true;try{await setDoc(chatJoinRef(roomId,currentUser.uid),{uid:currentUser.uid,roomId,inviteToken:token,createdAt:serverTimestamp()});await updateDoc(chatRoomRef(roomId),{members:arrayUnion(currentUser.uid),updatedAt:serverTimestamp()});try{await deleteDoc(chatJoinRef(roomId,currentUser.uid))}catch(_){}await chatOpenRoom(roomId);await chatRefreshRooms();box.hidden=true}catch(e){chatStatus('เข้าร่วมห้องไม่ได้ ลิงก์อาจถูกปิดหรือกฎ Firestore ยังไม่ได้เผยแพร่')}finally{join.disabled=false}};box.append(title,detail,join);box.hidden=false;chatStatus('พบลิงก์เชิญแล้ว')}catch(e){chatStatus('ค้นหาลิงก์เชิญไม่ได้ ตรวจสอบการเชื่อมต่อและกฎ Firestore')}}
-chatEl('chatCreateRoom')?.addEventListener('click',async()=>{if(!currentUser){chatStatus('กรุณาลงชื่อเข้าใช้ Google ก่อนสร้างห้อง');return}const name=chatEl('chatRoomName').value.trim()||'ห้องพูดคุยใหม่';const button=chatEl('chatCreateRoom');button.disabled=true;try{const code=chatCode();const uid=currentUser.uid;const ref=await addDoc(collection(db,'chatRooms'),{name,code,ownerUid:uid,ownerName:chatName(),members:[uid],inviteEnabled:true,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});/* กันกรณี members หลุด: ยืนยันเจ้าของอยู่ในสมาชิก */try{await updateDoc(ref,{members:arrayUnion(uid),ownerUid:uid})}catch(_){ }chatEl('chatRoomName').value='';/* บันทึกลงแคชทันที */const created={id:ref.id,name,code,ownerUid:uid,ownerName:chatName()};chatState.rooms=[created,...(chatState.rooms||[]).filter(r=>r.id!==ref.id)];chatSaveRoomsCache(chatState.rooms);chatRenderRooms();await chatRefreshRooms();await chatOpenRoom(ref.id);chatEl('chatRoomSettings').hidden=false;chatStatus('สร้างห้องแล้ว บันทึกไว้ในบัญชีแล้ว · คัดลอกลิงก์เชิญในตั้งค่าห้องเพื่อเชิญเพื่อน')}catch(e){chatStatus('สร้างห้องไม่สำเร็จ กรุณาตรวจสอบกฎ Firestore และการลงชื่อเข้าใช้')}finally{button.disabled=false}});
-chatEl('chatFindRoom')?.addEventListener('click',chatFindRoom);
-chatEl('chatBackLobby')?.addEventListener('click',chatBackLobby);
-chatEl('chatRoomSettingsToggle')?.addEventListener('click',()=>{chatEl('chatRoomSettings').hidden=!chatEl('chatRoomSettings').hidden});
-chatEl('chatCopyCode')?.addEventListener('click',async()=>{if(!chatState.room)return;try{await navigator.clipboard.writeText(chatState.room.code);chatStatus('คัดลอกรหัสห้องแล้ว')}catch(e){chatStatus('คัดลอกไม่ได้ กรุณาคัดลอกรหัส: '+chatState.room.code)}});
-chatEl('chatCopyInvite')?.addEventListener('click',async()=>{if(!chatState.room||chatState.room.ownerUid!==currentUser?.uid)return;try{const token=chatToken();await setDoc(chatInviteRef(chatState.roomId,token),{roomId:chatState.roomId,roomName:chatState.room.name||'ห้องพูดคุย',ownerUid:currentUser.uid,active:true,createdAt:serverTimestamp()});const link=chatInviteUrl(chatState.roomId,token);try{await navigator.clipboard.writeText(link);chatStatus('สร้างและคัดลอกลิงก์เชิญส่วนตัวแล้ว ส่งให้คนที่ต้องการเชิญได้เลย')}catch(e){prompt('คัดลอกลิงก์เชิญส่วนตัว',link)}}catch(e){chatStatus('สร้างลิงก์เชิญไม่ได้ ตรวจสอบกฎ Firestore')}});
-chatEl('chatSaveRoomName')?.addEventListener('click',async()=>{if(!chatState.room||chatState.room.ownerUid!==currentUser?.uid)return;const name=chatEl('chatRename').value.trim().slice(0,48);if(!name){chatStatus('กรุณาใส่ชื่อห้อง');return}try{await updateDoc(chatRoomRef(chatState.roomId),{name,updatedAt:serverTimestamp()});chatStatus('บันทึกชื่อห้องแล้ว')}catch(e){chatStatus('บันทึกชื่อห้องไม่ได้ ตรวจสอบสิทธิ์ Firestore')}});
-chatEl('chatDeleteRoom')?.addEventListener('click',async()=>{if(!chatState.room||chatState.room.ownerUid!==currentUser?.uid||!confirm('ลบห้องนี้และหยุดการเข้าถึงของสมาชิกทั้งหมดหรือไม่?'))return;try{await deleteDoc(chatRoomRef(chatState.roomId));chatBackLobby();chatStatus('ลบห้องแล้ว')}catch(e){chatStatus('ลบห้องไม่ได้ ตรวจสอบสิทธิ์ Firestore')}});
-chatEl('chatLeaveRoom')?.addEventListener('click',async()=>{if(!chatState.room||!currentUser)return;if(chatState.room.ownerUid===currentUser.uid){chatStatus('เจ้าของห้องต้องลบห้องหรือโอนสิทธิ์ก่อนออก');return}try{await updateDoc(chatRoomRef(chatState.roomId),{members:arrayRemove(currentUser.uid),updatedAt:serverTimestamp()});chatBackLobby();chatStatus('ออกจากห้องแล้ว')}catch(e){chatStatus('ออกจากห้องไม่ได้ ตรวจสอบสิทธิ์ Firestore')}});
-chatEl('chatSendForm')?.addEventListener('submit',async e=>{e.preventDefault();if(!currentUser||!chatState.roomId)return;const input=chatEl('chatMessageInput'),textValue=input.value.trim();if(!textValue)return;const button=chatEl('chatSendButton');button.disabled=true;try{
-  const snap=await getDoc(chatRoomRef(chatState.roomId));
-  if(!snap.exists()) throw Error('no-room');
-  const room=snap.data()||{};
+chatEl('chatCreateRoom')?.addEventListener('click',async()=>{
+  if(!currentUser){ chatStatus('กรุณาลงชื่อเข้าใช้ Google ก่อนสร้างห้อง'); return; }
+  // ถ้าค้างอยู่ในห้อง ให้กลับ lobby ก่อน
+  if(chatState.roomId){ try{ chatBackLobby(); }catch(_){} }
+  const nameEl=chatEl('chatRoomName');
+  const name=(nameEl && nameEl.value.trim()) || 'ห้องพูดคุยใหม่';
+  const button=chatEl('chatCreateRoom');
+  if(button) button.disabled=true;
+  try{
+    const code=chatCode();
+    const uid=currentUser.uid;
+    const ref=await addDoc(collection(db,'chatRooms'),{
+      name, code,
+      ownerUid: uid,
+      ownerName: chatName(),
+      members: [uid],
+      inviteEnabled: true,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+    try{ await updateDoc(ref, { members: arrayUnion(uid), ownerUid: uid }); }catch(_){}
+    if(nameEl) nameEl.value='';
+    const created={ id: ref.id, name, code, ownerUid: uid, ownerName: chatName() };
+    chatState.rooms=[created, ...(chatState.rooms||[]).filter(r=>r.id!==ref.id)];
+    try{ chatSaveRoomsCache(chatState.rooms); }catch(_){}
+    chatRenderRooms();
+    try{ await chatRefreshRooms(); }catch(_){}
+    await chatOpenRoom(ref.id);
+    const settings=chatEl('chatRoomSettings'); if(settings) settings.hidden=false;
+    chatStatus('สร้างห้องแล้ว · คุณเป็นเจ้าของ พิมพ์ข้อความได้เลย');
+  }catch(e){
+    console.warn('create room', e);
+    chatStatus('สร้างห้องไม่สำเร็จ กรุณาตรวจสอบกฎ Firestore และการลงชื่อเข้าใช้');
+  }finally{
+    if(button) button.disabled=false;
+  }
+});
+
+chatEl('chatFindRoom')?.addEventListener('click', ()=>{ try{ chatFindRoom(); }catch(e){ chatStatus('ค้นหาห้องไม่ได้'); } });
+chatEl('chatBackLobby')?.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); chatBackLobby(); });
+chatEl('chatRoomSettingsToggle')?.addEventListener('click', ()=>{
+  const s=chatEl('chatRoomSettings'); if(!s) return; s.hidden = !s.hidden;
+});
+chatEl('chatCopyCode')?.addEventListener('click', async ()=>{
+  if(!chatState.room) return;
+  try{ await navigator.clipboard.writeText(chatState.room.code); chatStatus('คัดลอกรหัสห้องแล้ว'); }
+  catch(e){ chatStatus('คัดลอกไม่ได้ กรุณาคัดลอกรหัส: '+(chatState.room.code||'')); }
+});
+chatEl('chatCopyInvite')?.addEventListener('click', async ()=>{
+  if(!chatState.room || chatState.room.ownerUid!==currentUser?.uid) return;
+  try{
+    const token=chatToken();
+    await setDoc(chatInviteRef(chatState.roomId, token), {
+      roomId: chatState.roomId,
+      roomName: chatState.room.name||'ห้องพูดคุย',
+      ownerUid: currentUser.uid,
+      active: true,
+      createdAt: serverTimestamp()
+    });
+    const link=chatInviteUrl(chatState.roomId, token);
+    try{ await navigator.clipboard.writeText(link); chatStatus('สร้างและคัดลอกลิงก์เชิญส่วนตัวแล้ว'); }
+    catch(e){ prompt('คัดลอกลิงก์เชิญส่วนตัว', link); }
+  }catch(e){ chatStatus('สร้างลิงก์เชิญไม่ได้ ตรวจสอบกฎ Firestore'); }
+});
+chatEl('chatSaveRoomName')?.addEventListener('click', async ()=>{
+  if(!chatState.room || chatState.room.ownerUid!==currentUser?.uid) return;
+  const name=(chatEl('chatRename')?.value||'').trim().slice(0,48);
+  if(!name){ chatStatus('กรุณาใส่ชื่อห้อง'); return; }
+  try{ await updateDoc(chatRoomRef(chatState.roomId), { name, updatedAt: serverTimestamp() }); chatStatus('บันทึกชื่อห้องแล้ว'); }
+  catch(e){ chatStatus('บันทึกชื่อห้องไม่ได้ ตรวจสอบสิทธิ์ Firestore'); }
+});
+chatEl('chatDeleteRoom')?.addEventListener('click', async ()=>{
+  if(!chatState.room || chatState.room.ownerUid!==currentUser?.uid) return;
+  if(!confirm('ลบห้องนี้และหยุดการเข้าถึงของสมาชิกทั้งหมดหรือไม่?')) return;
+  try{
+    await deleteDoc(chatRoomRef(chatState.roomId));
+    // ลบออกจากแคช
+    chatState.rooms=(chatState.rooms||[]).filter(r=>r.id!==chatState.roomId);
+    try{ chatSaveRoomsCache(chatState.rooms); }catch(_){}
+    chatBackLobby();
+    chatRenderRooms();
+    chatStatus('ลบห้องแล้ว');
+  }catch(e){ chatStatus('ลบห้องไม่ได้ ตรวจสอบสิทธิ์ Firestore'); }
+});
+chatEl('chatLeaveRoom')?.addEventListener('click', async ()=>{
+  if(!chatState.room || !currentUser) return;
+  if(chatState.room.ownerUid===currentUser.uid){ chatStatus('เจ้าของห้องต้องลบห้องหรือโอนสิทธิ์ก่อนออก'); return; }
+  try{
+    await updateDoc(chatRoomRef(chatState.roomId), { members: arrayRemove(currentUser.uid), updatedAt: serverTimestamp() });
+    chatState.rooms=(chatState.rooms||[]).filter(r=>r.id!==chatState.roomId);
+    try{ chatSaveRoomsCache(chatState.rooms); }catch(_){}
+    chatBackLobby();
+    chatRenderRooms();
+    chatStatus('ออกจากห้องแล้ว');
+  }catch(e){ chatStatus('ออกจากห้องไม่ได้ ตรวจสอบสิทธิ์ Firestore'); }
+});
+chatEl('chatSendForm')?.addEventListener('submit', async e=>{
+  e.preventDefault();
+  e.stopPropagation();
+  if(!currentUser){ chatStatus('กรุณาลงชื่อเข้าใช้ก่อนส่งข้อความ'); return; }
+  if(!chatState.roomId){ chatStatus('ยังไม่ได้เข้าห้อง'); return; }
+  const input=chatEl('chatMessageInput');
+  const textValue=(input && input.value || '').trim();
+  if(!textValue) return;
+  const button=chatEl('chatSendButton');
+  if(button) button.disabled=true;
   const uid=currentUser.uid;
-  const isOwner=room.ownerUid===uid;
-  const members=Array.isArray(room.members)?room.members:[];
-  const isMember=members.includes(uid);
-  // เจ้าของห้องต้องพูดได้เสมอ — ถ้าหลุดจาก members ให้ใส่กลับ
-  if(!isMember){
-    if(isOwner){
-      try{ await updateDoc(chatRoomRef(chatState.roomId),{members:arrayUnion(uid),updatedAt:serverTimestamp()}); }catch(_){}
-    } else {
-      throw Error('not-member');
-    }
-  }
-  const myPhoto=(cloudProfile&&cloudProfile.photoURL)||currentUser.photoURL||'';
-  await addDoc(collection(db,'chatRooms',chatState.roomId,'messages'),{
-    uid,
-    name:chatName(),
-    text:textValue,
-    photoURL:myPhoto||null,
-    createdAt:serverTimestamp()
-  });
-  input.value='';
-  chatStatus('ส่งแล้ว');
-}catch(e){
-  const msg=String(e&&e.message||e||'');
-  if(msg.includes('not-member')) chatStatus('ส่งไม่ได้: คุณไม่ได้อยู่ในสมาชิกห้องนี้');
-  else if(msg.includes('permission')||msg.includes('PERMISSION')||msg.includes('Missing or insufficient')) chatStatus('ส่งไม่ได้: กฎ Firestore ยังไม่อนุญาตให้เขียนข้อความ (ขอให้ตรวจ rules ของ messages)');
-  else chatStatus('ส่งข้อความไม่ได้ ตรวจสอบการเชื่อมต่อและกฎ Firestore');
-  console.warn('chat send error', e);
-}finally{button.disabled=false;input.focus()}});
-const chatRoomParam=new URL(location.href).searchParams.get('room');
-const chatInviteParam=new URL(location.href).searchParams.get('invite');
-if(chatRoomParam&&chatInviteParam){chatEl('chatFindCode').value=location.href;setTimeout(()=>{if(currentUser){chatFindRoom();if(typeof showPage==='function')showPage('chat')}},700)}
-
-/* ===== Chat category: prep screen + fullscreen shell (chat only) ===== */
-(()=>{
-  const $=id=>document.getElementById(id);
-  const prep=$('chatPrep');
-  const shell=$('chatMainShell');
-  const enter=$('enterChatApp');
-  const exitBtn=$('chatExitToPrep');
-  if(!prep||!shell||!enter) return;
-
-  function enterChat(){
-    shell.classList.add('active');
-    shell.style.display='flex';
-    if(prep){ prep.style.display='none'; }
-    try{ document.documentElement.classList.add('chat-fullscreen'); }catch(e){}
+  const myPhoto=(cloudProfile && cloudProfile.photoURL) || currentUser.photoURL || '';
+  const payload={ uid, name: chatName(), text: textValue, photoURL: myPhoto || null, createdAt: serverTimestamp() };
+  try{
+    let room={};
     try{
-      const app=$('siteApp');
-      if(app){ app.style.display='block'; app.style.visibility='visible'; }
-    }catch(e){}
+      const snap=await getDoc(chatRoomRef(chatState.roomId));
+      room = snap.exists() ? (snap.data()||{}) : {};
+    }catch(_){}
+    const isOwner = room.ownerUid===uid || (chatState.room && chatState.room.ownerUid===uid);
+    const members = Array.isArray(room.members) ? room.members : [];
+    if(isOwner && !members.includes(uid)){
+      try{ await updateDoc(chatRoomRef(chatState.roomId), { members: arrayUnion(uid), updatedAt: serverTimestamp() }); }catch(_){}
+    }
+    if(!isOwner && members.length && !members.includes(uid)){
+      throw Object.assign(new Error('not-member'), { code: 'not-member' });
+    }
+    await addDoc(collection(db, 'chatRooms', chatState.roomId, 'messages'), payload);
+    if(input) input.value='';
+    chatStatus('ส่งแล้ว');
+  }catch(err){
+    console.warn('chat send error', err);
+    const s = String((err && (err.code || err.message)) || '');
+    if(s.includes('not-member')) chatStatus('ส่งไม่ได้: ไม่ได้อยู่ในสมาชิกห้อง');
+    else if(/permission|insufficient|PERMISSION/i.test(s))
+      chatStatus('ส่งไม่ได้: กฎ Firestore บล็อกการเขียน messages — ต้องเปิด allow create ให้สมาชิก/เจ้าของ');
+    else
+      chatStatus('ส่งข้อความไม่ได้: ' + (err && err.message ? String(err.message).slice(0,120) : 'ไม่ทราบสาเหตุ'));
+  }finally{
+    if(button) button.disabled=false;
+    if(input) try{ input.focus(); }catch(_){}
   }
-  function exitChat(){
-    shell.classList.remove('active');
-    shell.style.display='none';
-    if(prep){ prep.style.display='flex'; prep.hidden=false; }
-    try{ document.documentElement.classList.remove('chat-fullscreen'); }catch(e){}
-    const pv=$('chatProfileView'); if(pv) pv.classList.remove('open');
-  }
-  // expose for showPage / global cleanup
-  window.exitChatToPrep = exitChat;
-  window.enterChatApp = enterChat;
-  enter.addEventListener('click', enterChat);
-  if(exitBtn) exitBtn.addEventListener('click', exitChat);
+});
 
-  // prep ⋮ menu
-  const dots=$('chatPrepDots'), dd=$('chatPrepDD');
-  if(dots && dd){
-    dots.addEventListener('click', e=>{
-      e.stopPropagation();
-      const on=dd.classList.toggle('open');
-      dots.classList.toggle('on', on);
-    });
-    document.addEventListener('click', e=>{
-      if(!dd.classList.contains('open')) return;
-      if(dd.contains(e.target)||dots.contains(e.target)) return;
-      dd.classList.remove('open'); dots.classList.remove('on');
-    });
-    const goHome=()=>{
-      dd.classList.remove('open'); dots.classList.remove('on');
-      exitChat();
-      document.querySelectorAll('#siteApp .page').forEach(p=>p.classList.remove('active'));
-      const home=$('page-home');
-      if(home) home.classList.add('active');
-      try{sessionStorage.setItem('gmp_last_page','home')}catch(e){}
-    };
-    $('chatPrepHome')?.addEventListener('click', goHome);
-    $('chatPrepExit')?.addEventListener('click', goHome);
-  }
-
-  // profile viewer close
-  $('chatProfClose')?.addEventListener('click', ()=>$('chatProfileView')?.classList.remove('open'));
-  $('chatProfileView')?.addEventListener('click', e=>{
-    if(e.target===e.currentTarget) e.currentTarget.classList.remove('open');
-  });
-
-  // when invite link opens chat page, auto-enter shell
+// invite deep-link
+(()=>{
   const chatRoomParam=new URL(location.href).searchParams.get('room');
   const chatInviteParam=new URL(location.href).searchParams.get('invite');
-  if(chatRoomParam&&chatInviteParam){
-    setTimeout(()=>{ if(typeof showPage==='function') showPage('chat'); enterChat(); }, 800);
+  if(chatRoomParam && chatInviteParam){
+    const box=chatEl('chatFindCode');
+    if(box) box.value=location.href;
+    setTimeout(()=>{
+      if(currentUser){
+        try{ chatFindRoom(); }catch(_){}
+        if(typeof showPage==='function') showPage('chat');
+        if(typeof window.enterChatApp==='function') window.enterChatApp();
+      }
+    }, 700);
   }
 })();
-
-
-</script>
-
-<script>
-(()=>{
- const $=id=>document.getElementById(id);
- const drawer=$('siteDrawer');
- const closeDrawer=()=>drawer.classList.remove('open');
- $('siteMenuButton').addEventListener('click',e=>{e.stopPropagation();drawer.classList.toggle('open')});
- document.addEventListener('click',e=>{
-  if(!drawer||!drawer.classList.contains('open')) return;
-  if(drawer.contains(e.target)||(e.target.closest&&e.target.closest('#siteMenuButton'))) return;
-  closeDrawer();
- });
- if(drawer) drawer.addEventListener('click',e=>e.stopPropagation());
- document.querySelectorAll('#siteApp [data-page]').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
- document.querySelectorAll('#siteApp [data-goto-music]').forEach(b=>b.addEventListener('click',()=>showPage('music')));
- function showPage(name){
-  // ปิดทุกชั้นซ้อนทับก่อนเปลี่ยนหน้า
-  try{ closeDrawer(); }catch(e){}
-  try{
-    const shell=$('chatMainShell'); if(shell) shell.classList.remove('active');
-    const pv=$('chatProfileView'); if(pv) pv.classList.remove('open');
-    document.documentElement.classList.remove('chat-fullscreen');
-    const prep=$('chatPrep'); if(prep){ prep.style.display=''; prep.hidden=false; }
-  }catch(e){}
-  try{
-    const pm=$('profileMenu'); if(pm) pm.classList.remove('open');
-  }catch(e){}
-  try{
-    const fish=$('fishGameContainer');
-    if(fish){ fish.classList.remove('active'); fish.style.display='none'; }
-    document.documentElement.classList.remove('fish-fullscreen');
-    ['fishPrepDD','preDD','chatPrepDD'].forEach(id=>{
-      const el=$(id); if(el){ el.classList.remove('open'); el.style.display=''; }
-    });
-    ['fishPrepDots','preDots','chatPrepDots'].forEach(id=>{
-      const el=$(id); if(el) el.classList.remove('on');
-    });
-  }catch(e){}
-  try{
-    const frame=$('mongkolGameFrame');
-    const screen=$('mongkolLaunchScreen');
-    const controls=$('mongkolGameControls');
-    const menu=$('mongkolMenu');
-    if(frame){ frame.hidden=true; frame.style.display='none'; }
-    if(controls){ controls.hidden=true; controls.style.display='none'; }
-    if(menu){ menu.hidden=true; menu.style.display='none'; }
-    if(screen){ screen.hidden=false; screen.style.display='flex'; }
-    const launch=$('mongkolLaunch'); if(launch) launch.hidden=false;
-    const wrap=$('mongkolLoadWrap'); if(wrap) wrap.hidden=true;
-  }catch(e){}
-  try{
-    const picker=$('colorPickerDock'); if(picker) picker.classList.remove('open');
-    document.documentElement.classList.remove('color-pick-mode');
-  }catch(e){}
-
-  document.querySelectorAll('#siteApp .page').forEach(p=>p.classList.toggle('active',p.id==='page-'+name));
-  window.scrollTo(0,0);
-  try{sessionStorage.setItem('gmp_last_page',name)}catch(e){}
-  // กันหน้าขาว: ตอนอยู่ในเว็บต้องโชว์ siteApp
-  const app=$('siteApp');
-  if(app && (document.documentElement.classList.contains('logged')||document.documentElement.classList.contains('guest'))){
-    app.style.display='block'; app.style.visibility='visible';
-  }
-  // เข้าหมวดแชท = หน้าเตรียมเท่านั้น (ไม่เปิดห้องทันที)
-  if(name==='chat'){
-    try{
-      const shell=$('chatMainShell'); if(shell){ shell.classList.remove('active'); shell.style.display='none'; }
-      const prep=$('chatPrep'); if(prep){ prep.style.display='flex'; prep.hidden=false; }
-    }catch(e){}
-  }
- }
- $('openSignIn').addEventListener('click',()=>{
-  localStorage.removeItem('gangmoopping_guest_mode');
-  document.documentElement.classList.remove('guest');
-  closeDrawer();
-  // ถ้าล็อกอินอยู่แล้ว ห้ามซ่อน siteApp (กันหน้าขาว)
-  if(document.documentElement.classList.contains('logged') || (window.authCurrentUser)){
-    location.hash='in';
-    const app=$('siteApp'); if(app){ app.style.display='block'; app.style.visibility='visible'; }
-    const inn=$('inner'); if(inn) inn.style.display='none';
-    return;
-  }
-  location.hash='in';
-  const app=$('siteApp'); if(app) app.style.display='none';
-  const inn=$('inner'); if(inn){ inn.style.display='block'; inn.style.visibility='visible'; }
-});
- $('guestExit').addEventListener('click',()=>{localStorage.removeItem('gangmoopping_guest_mode');document.documentElement.classList.remove('guest');location.hash='';closeDrawer();});
- const key='gangmoopping_music_links_v1';let items=[];try{items=JSON.parse(localStorage.getItem(key)||'[]');if(!Array.isArray(items))items=[]}catch(e){items=[]}
- const save=()=>{try{localStorage.setItem(key,JSON.stringify(items))}catch(e){};render()};
- function getYouTubeId(url){try{const u=new URL(url);if(u.hostname==='youtu.be')return u.pathname.slice(1).split('/')[0];if(u.hostname.endsWith('youtube.com')){if(u.pathname==='/watch')return u.searchParams.get('v');const m=u.pathname.match(/^\/(?:embed|shorts|live)\/([^/?]+)/);return m?m[1]:null}}catch(e){}return null}
- function render(){const list=$('musicList');if(!list)return;list.innerHTML='';if(!items.length){list.innerHTML='<p class="muted">ยังไม่มีลิงก์เพลง</p>';return}items.forEach((url,i)=>{const row=document.createElement('div');row.className='track';const title=document.createElement('div');title.textContent=(i+1)+'. '+url;row.appendChild(title);const yt=getYouTubeId(url);if(yt){const frame=document.createElement('iframe');frame.loading='lazy';frame.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';frame.allowFullscreen=true;frame.src='https://www.youtube-nocookie.com/embed/'+encodeURIComponent(yt);row.appendChild(frame)}else if(/^https:\/\//i.test(url)&&/\.(mp3|m4a|aac|ogg|oga|wav|opus)(?:$|[?#])/i.test(url)){const audio=document.createElement('audio');audio.controls=true;audio.preload='none';audio.className='audioPlayer';audio.src=url;audio.addEventListener('play',()=>document.querySelectorAll('#musicList audio').forEach(other=>{if(other!==audio)other.pause()}));row.appendChild(audio)}else{const note=document.createElement('p');note.className='muted';note.textContent='ลิงก์นี้ไม่ใช่ไฟล์เสียงโดยตรง ระบบจะแสดงเครื่องเล่น YouTube ได้เฉพาะลิงก์ YouTube ที่ตรวจพบ';row.appendChild(note)}const del=document.createElement('button');del.className='action secondary';del.textContent='ลบ';del.addEventListener('click',()=>{items.splice(i,1);save()});row.appendChild(del);list.appendChild(row)})}
- if($('addMusic')&&$('musicUrl')) $('addMusic').addEventListener('click',()=>{const values=$('musicUrl').value.split(/\n+/).map(x=>x.trim()).filter(Boolean);const valid=values.filter(v=>{try{const u=new URL(v);return u.protocol==='https:'||u.protocol==='http:'}catch(e){return false}});if(!valid.length){alert('กรุณาวางลิงก์ URL ที่ถูกต้อง');return}items.push(...valid);$('musicUrl').value='';save()});
- if($('clearMusic')) $('clearMusic').addEventListener('click',()=>{if(confirm('ล้างรายการเพลงทั้งหมดหรือไม่?')){items=[];save()}});
- render();
-})();
-</script>
-
-
-<script>
-(()=>{
- const $=id=>document.getElementById(id);
- const audios={1:$('restoreAudio1'),2:$('restoreAudio2')};
- const discs={1:$('restoreDisc1'),2:$('restoreDisc2'),3:$('restoreDisc3')};
- const buttons={1:document.querySelector('[data-restore-play="1"]'),2:document.querySelector('[data-restore-play="2"]'),3:$('restoreLinkPlay')};
-
- const linkInput=$('restoreYoutubeUrl');
- const linkStatus=$('restoreYoutubeStatus');
- const ytFrame=$('restoreYoutubeFrame');
- const clipToggle=$('restoreClipToggle');
- const linkAudio=$('restoreLinkAudio');
- const LINK_KEY='gangmoopping_disc3_link_v1';
- const CLIP_SHOW_KEY='gangmoopping_disc3_showclip_v1';
-
- function state(n,playing){
-  if(discs[n]) discs[n].classList.toggle('is-playing',!!playing);
-  if(buttons[n]) buttons[n].textContent=playing?'❚❚ หยุดเพลง':'▶ เล่นเพลง';
- }
- function ytId(raw){
-  try{
-   const u=new URL(String(raw||'').trim());
-   if(u.hostname==='youtu.be'||u.hostname==='www.youtu.be') return u.pathname.split('/').filter(Boolean)[0]||null;
-   if(/(^|\.)youtube\.com$/i.test(u.hostname)||/youtube-nocookie\.com$/i.test(u.hostname)){
-    if(u.pathname==='/watch') return u.searchParams.get('v');
-    const m=u.pathname.match(/^\/(?:embed|shorts|live)\/([^/?]+)/);
-    return m?m[1]:null;
-   }
-  }catch(e){}
-  const s=String(raw||'');
-  if(s.includes('youtu.be/')) return s.split('youtu.be/')[1].split(/[?&#]/)[0];
-  if(s.includes('watch?v=')) return s.split('watch?v=')[1].split('&')[0];
-  if(s.includes('/embed/')) return s.split('/embed/')[1].split(/[?&#]/)[0];
-  return null;
- }
- function stopFixedAudios(){
-  Object.values(audios).forEach(a=>{ try{a.pause()}catch(e){} });
-  state(1,false); state(2,false);
- }
- function stopLinkPlayers(){
-  try{
-   if(linkAudio){ linkAudio.pause(); linkAudio.currentTime=0; linkAudio.removeAttribute('src'); linkAudio.load(); }
-  }catch(e){}
-  try{ if(ytFrame) ytFrame.innerHTML=''; }catch(e){}
-  try{ showClipArea(false); }catch(e){}
-  linkPlaying=false;
-  state(3,false);
- }
- const clipWrap=$('restoreClipWrap');
- const clipCover=$('restoreClipCover');
- const clipUncover=$('restoreClipUncover');
- const CLIP_COVER_KEY='gangmoopping_disc3_cover_v1';
-
- function setCover(on){
-  covered=!!on;
-  try{ localStorage.setItem(CLIP_COVER_KEY, covered?'1':'0'); }catch(e){}
-  if(clipCover){
-   if(covered) clipCover.hidden=false;
-   else clipCover.hidden=true;
-  }
-  if(clipToggle){
-   clipToggle.hidden = !linkPlaying || !ytFrame || !ytFrame.innerHTML;
-   clipToggle.textContent = covered ? 'เปิดคลิป' : 'ปิดคลิป';
-  }
- }
-
- function showClipArea(show){
-  if(clipWrap) clipWrap.hidden = !show;
-  if(clipToggle) clipToggle.hidden = !show;
-  if(!show && clipCover) clipCover.hidden=true;
- }
-
- let linkPlaying=false;
- let covered=false;
- try{ covered = localStorage.getItem(CLIP_COVER_KEY)==='1'; }catch(e){}
- try{
-  const saved=localStorage.getItem(LINK_KEY);
-  if(saved && linkInput) linkInput.value=saved;
- }catch(e){}
- if(linkInput){
-  const saveLink=()=>{ try{localStorage.setItem(LINK_KEY, linkInput.value.trim())}catch(e){} };
-  linkInput.addEventListener('change', saveLink);
-  linkInput.addEventListener('blur', saveLink);
- }
- if(clipToggle){
-  clipToggle.addEventListener('click', ()=> setCover(!covered));
- }
- if(clipUncover){
-  clipUncover.addEventListener('click', ()=> setCover(false));
- }
-
-
- Object.entries(audios).forEach(([n,a])=>{
-  if(!a) return;
-  a.addEventListener('play',()=>{
-   Object.entries(audios).forEach(([other,b])=>{ if(other!==n && b) b.pause(); });
-   stopLinkPlayers();
-   state(n,true);
-   const st=$('restoreStatus'+n); if(st) st.textContent='กำลังเล่นเพลง';
-  });
-  a.addEventListener('pause',()=>{
-   state(n,false);
-   const st=$('restoreStatus'+n);
-   if(st && !String(st.textContent||'').startsWith('เล่นไม่ได้')) st.textContent='หยุดเพลงแล้ว';
-  });
-  a.addEventListener('ended',()=>state(n,false));
-  a.addEventListener('error',()=>{
-   const st=$('restoreStatus'+n); if(st) st.textContent='เล่นไม่ได้: ตรวจสอบลิงก์ไฟล์เสียง';
-   state(n,false);
-  });
- });
-
- document.querySelectorAll('[data-restore-play]').forEach(btn=>btn.addEventListener('click',async()=>{
-  const n=btn.dataset.restorePlay, a=audios[n];
-  if(!a) return;
-  if(!a.paused){ a.pause(); return; }
-  stopLinkPlayers();
-  Object.values(audios).forEach(other=>{ if(other && other!==a) other.pause(); });
-  try{ await a.play(); }
-  catch(e){
-   const st=$('restoreStatus'+n);
-   if(st) st.textContent='เปิดเสียงไม่ได้ ลองตรวจสอบลิงก์หรือการเชื่อมต่อ';
-   state(n,false);
-  }
- }));
 
  document.querySelectorAll('[data-restore-loop]').forEach(btn=>btn.addEventListener('click',()=>{
   const a=audios[btn.dataset.restoreLoop];
@@ -2428,6 +2396,442 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
  const original=window.exitFishGameToPrep;
  window.exitFishGameToPrep=function(){html.classList.remove('fish-fullscreen');leaveFull();if(typeof original==='function')original();setTimeout(()=>window.dispatchEvent(new Event('resize')),80)};
  document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&!fish.classList.contains('active'))html.classList.remove('fish-fullscreen')});
+})();
+</script>
+
+
+<script id="gmp-nav-and-overlay-fix">
+(()=>{
+  const $ = id => document.getElementById(id);
+  const drawer = $('siteDrawer');
+
+  function closeDrawer(){
+    if(drawer) drawer.classList.remove('open');
+  }
+
+  /** ปิดทุกชั้นที่อาจซ้อนทับ — เรียกก่อนเปลี่ยนหน้าทุกครั้ง */
+  function clearAllOverlays(opts){
+    opts = opts || {};
+    try{ closeDrawer(); }catch(e){}
+
+    // โปรไฟล์ / สี
+    try{ $('profileMenu')?.classList.remove('open'); }catch(e){}
+    try{ $('reportBugMenu')?.classList.remove('open'); const r=$('reportBugMenu'); if(r) r.hidden=true; }catch(e){}
+    try{
+      $('colorPickerDock')?.classList.remove('open');
+      document.documentElement.classList.remove('color-pick-mode');
+    }catch(e){}
+
+    // แชทเต็มจอ + โปรไฟล์แชท
+    try{
+      if(typeof chatBackLobby === 'function') chatBackLobby();
+    }catch(e){}
+    try{
+      const shell = $('chatMainShell');
+      if(shell){ shell.classList.remove('active'); shell.style.display = 'none'; }
+      const prep = $('chatPrep');
+      if(prep){ prep.style.display = ''; prep.hidden = false; }
+      $('chatProfileView')?.classList.remove('open');
+      document.documentElement.classList.remove('chat-fullscreen');
+    }catch(e){}
+
+    // เกมตกปลา
+    try{
+      const fish = $('fishGameContainer');
+      if(fish){
+        fish.classList.remove('active');
+        fish.style.display = 'none';
+      }
+      document.documentElement.classList.remove('fish-fullscreen');
+      try{ if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(()=>{}); }catch(e){}
+      ['loading','menu','srv','bye','shop','guide','rot','dd','howto','hud'].forEach(id=>{
+        const el = $(id);
+        if(!el) return;
+        el.style.display = 'none';
+        el.classList.remove('is-visible','open','active','hidden');
+      });
+      try{ if(typeof leaveNet === 'function') leaveNet(); }catch(e){}
+      try{ if(typeof playing !== 'undefined') playing = false; }catch(e){}
+    }catch(e){}
+
+    // เมนูจุด 3 จุด ทุกหมวด
+    ['fishPrepDD','preDD','chatPrepDD','mongkolMenu'].forEach(id=>{
+      const el = $(id);
+      if(!el) return;
+      el.classList.remove('open');
+      el.hidden = true;
+      try{ el.style.display = 'none'; }catch(e){}
+    });
+    ['fishPrepDots','preDots','chatPrepDots','mongkolDots'].forEach(id=>{
+      $(id)?.classList.remove('on');
+      try{ $(id)?.setAttribute('aria-expanded','false'); }catch(e){}
+    });
+
+    // มงคล — กลับหน้าเตรียม ปิด iframe เกม
+    try{
+      const frame = $('mongkolGameFrame');
+      const screen = $('mongkolLaunchScreen');
+      const controls = $('mongkolGameControls');
+      const menu = $('mongkolMenu');
+      const launch = $('mongkolLaunch');
+      const wrap = $('mongkolLoadWrap');
+      if(frame){ frame.hidden = true; frame.style.display = 'none'; }
+      if(controls){ controls.hidden = true; controls.style.display = 'none'; }
+      if(menu){ menu.hidden = true; menu.style.display = 'none'; }
+      if(screen){ screen.hidden = false; screen.style.display = 'flex'; }
+      if(launch){ launch.hidden = false; }
+      if(wrap){ wrap.hidden = true; }
+    }catch(e){}
+
+    // แบ็คดรอปทั่วไป
+    try{
+      document.querySelectorAll('.modal-backdrop,.overlay-backdrop,[data-overlay-backdrop]').forEach(el=>{
+        el.style.display = 'none';
+        el.hidden = true;
+      });
+    }catch(e){}
+
+    // แสดง siteApp ถ้าอยู่ในโหมด in
+    try{
+      const app = $('siteApp');
+      const html = document.documentElement;
+      if(app && (html.classList.contains('logged') || html.classList.contains('guest'))){
+        app.style.display = 'block';
+        app.style.visibility = 'visible';
+      }
+      const inn = $('inner');
+      if(inn && html.classList.contains('logged')){
+        // อย่าให้ inner บัง siteApp
+        if(getComputedStyle(inn).display !== 'none'){
+          const hasVisible = [...inn.children].some(el => getComputedStyle(el).display !== 'none');
+          if(!hasVisible) inn.style.display = 'none';
+        }
+      }
+    }catch(e){}
+  }
+
+  function showPage(name){
+    if(!name) name = 'home';
+    clearAllOverlays({ toPage: name });
+
+    document.querySelectorAll('#siteApp .page').forEach(p=>{
+      const on = p.id === 'page-' + name;
+      p.classList.toggle('active', on);
+      // บังคับไม่ให้หน้าอื่นโชว์ซ้อน
+      if(on){
+        p.style.display = '';
+        p.style.visibility = 'visible';
+      } else {
+        // ปล่อยให้ CSS .page จัดการ (display:none) — เคลียร์ inline ที่อาจค้าง
+        p.style.removeProperty('display');
+        p.style.removeProperty('visibility');
+      }
+    });
+
+    // หมวดแชท = หน้าเตรียมเท่านั้น
+    if(name === 'chat'){
+      try{
+        const shell = $('chatMainShell');
+        if(shell){ shell.classList.remove('active'); shell.style.display = 'none'; }
+        const prep = $('chatPrep');
+        if(prep){ prep.style.display = 'flex'; prep.hidden = false; }
+      }catch(e){}
+    }
+
+    // หมวดตกปลา = หน้าเตรียม
+    if(name === 'fishing'){
+      try{
+        const fish = $('fishGameContainer');
+        if(fish){ fish.classList.remove('active'); fish.style.display = 'none'; }
+      }catch(e){}
+    }
+
+    // หมวดมงคล = หน้าเตรียม
+    if(name === 'mongkol'){
+      try{
+        const frame = $('mongkolGameFrame');
+        const screen = $('mongkolLaunchScreen');
+        if(frame){ frame.hidden = true; frame.style.display = 'none'; }
+        if(screen){ screen.hidden = false; screen.style.display = 'flex'; }
+      }catch(e){}
+    }
+
+    window.scrollTo(0, 0);
+    try{ sessionStorage.setItem('gmp_last_page', name); }catch(e){}
+
+    const app = $('siteApp');
+    if(app && (document.documentElement.classList.contains('logged') || document.documentElement.classList.contains('guest'))){
+      app.style.display = 'block';
+      app.style.visibility = 'visible';
+    }
+  }
+
+  // เปิดให้โค้ดอื่นเรียกได้
+  window.showPage = showPage;
+  window.clearAllOverlays = clearAllOverlays;
+  window.closeDrawer = closeDrawer;
+
+  // เมนูแฮมเบอร์เกอร์
+  const menuBtn = $('siteMenuButton');
+  if(menuBtn){
+    menuBtn.addEventListener('click', e=>{
+      e.stopPropagation();
+      if(!drawer) return;
+      drawer.classList.toggle('open');
+    });
+  }
+  document.addEventListener('click', e=>{
+    if(!drawer || !drawer.classList.contains('open')) return;
+    if(drawer.contains(e.target)) return;
+    if(e.target.closest && e.target.closest('#siteMenuButton')) return;
+    closeDrawer();
+  });
+  if(drawer) drawer.addEventListener('click', e=> e.stopPropagation());
+
+  // เปลี่ยนหน้าจากเมนู
+  document.querySelectorAll('#siteApp [data-page]').forEach(b=>{
+    b.addEventListener('click', e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      const page = b.getAttribute('data-page');
+      if(page) showPage(page);
+    });
+  });
+  document.querySelectorAll('#siteApp [data-goto-music]').forEach(b=>{
+    b.addEventListener('click', e=>{
+      e.preventDefault();
+      showPage('music');
+    });
+  });
+
+  // ลงชื่อเข้าใช้ / ออกโหมดเยือน
+  $('openSignIn')?.addEventListener('click', ()=>{
+    localStorage.removeItem('gangmoopping_guest_mode');
+    document.documentElement.classList.remove('guest');
+    closeDrawer();
+    if(document.documentElement.classList.contains('logged') || window.authCurrentUser){
+      location.hash = 'in';
+      const app = $('siteApp'); if(app){ app.style.display = 'block'; app.style.visibility = 'visible'; }
+      const inn = $('inner'); if(inn) inn.style.display = 'none';
+      return;
+    }
+    location.hash = 'in';
+    const app = $('siteApp'); if(app) app.style.display = 'none';
+    const inn = $('inner'); if(inn){ inn.style.display = 'block'; inn.style.visibility = 'visible'; }
+  });
+  $('guestExit')?.addEventListener('click', ()=>{
+    localStorage.removeItem('gangmoopping_guest_mode');
+    document.documentElement.classList.remove('guest');
+    location.hash = '';
+    closeDrawer();
+  });
+
+  // ปุ่มย้อนกลับเบราว์เซอร์ / Escape — ปิดชั้นบนสุดก่อน
+  document.addEventListener('keydown', e=>{
+    if(e.key !== 'Escape') return;
+    const shell = $('chatMainShell');
+    if(shell && shell.classList.contains('active')){
+      e.preventDefault();
+      try{ if(typeof window.exitChatToPrep === 'function') window.exitChatToPrep();
+      else { shell.classList.remove('active'); shell.style.display='none'; document.documentElement.classList.remove('chat-fullscreen'); }
+      }catch(err){}
+      return;
+    }
+    const fish = $('fishGameContainer');
+    if(fish && fish.classList.contains('active')){
+      e.preventDefault();
+      try{ if(typeof window.exitFishGameToPrep === 'function') window.exitFishGameToPrep(); }catch(err){}
+      return;
+    }
+    const frame = $('mongkolGameFrame');
+    if(frame && !frame.hidden && frame.style.display !== 'none'){
+      e.preventDefault();
+      try{
+        frame.hidden = true; frame.style.display = 'none';
+        const screen = $('mongkolLaunchScreen');
+        if(screen){ screen.hidden = false; screen.style.display = 'flex'; }
+        const controls = $('mongkolGameControls');
+        if(controls){ controls.hidden = true; controls.style.display = 'none'; }
+      }catch(err){}
+      return;
+    }
+    closeDrawer();
+    $('profileMenu')?.classList.remove('open');
+    $('chatProfileView')?.classList.remove('open');
+  }, true);
+
+  // กันหน้าขาว / ชั้นค้าง ทุก 2.5 วินาที
+  function guardLayers(){
+    const html = document.documentElement;
+    const app = $('siteApp');
+    if(!app) return;
+    if(!(html.classList.contains('logged') || html.classList.contains('guest'))) return;
+
+    const fish = $('fishGameContainer');
+    const inFish = fish && fish.classList.contains('active');
+    const shell = $('chatMainShell');
+    const inChat = shell && shell.classList.contains('active');
+    const frame = $('mongkolGameFrame');
+    const inMongkol = frame && !frame.hidden && getComputedStyle(frame).display !== 'none';
+
+    // ถ้าไม่อยู่ในเกม/แชทเต็มจอ ต้องเห็น siteApp
+    if(!inFish && !inChat && !inMongkol){
+      const cs = getComputedStyle(app);
+      if(cs.display === 'none' || app.style.display === 'none'){
+        app.style.display = 'block';
+        app.style.visibility = 'visible';
+      }
+      // ต้องมีหน้า active อย่างน้อย 1
+      const pages = document.querySelectorAll('#siteApp .page');
+      const anyActive = [...pages].some(p => p.classList.contains('active'));
+      if(!anyActive){
+        const home = $('page-home');
+        if(home) home.classList.add('active');
+      }
+      // ห้ามมี 2 หน้า active พร้อมกัน
+      let seen = false;
+      pages.forEach(p=>{
+        if(p.classList.contains('active')){
+          if(seen) p.classList.remove('active');
+          else seen = true;
+        }
+      });
+    }
+  }
+  setInterval(guardLayers, 2500);
+  document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState === 'visible') guardLayers(); });
+  window.addEventListener('hashchange', guardLayers);
+  window.addEventListener('pageshow', ()=>{ clearAllOverlays(); guardLayers(); });
+
+  // โหลดหน้าล่าสุดครั้งเดียว (ไม่เปิดเกม/แชทค้าง)
+  try{
+    const last = sessionStorage.getItem('gmp_last_page');
+    if(last && ['home','music','fishing','mongkol','chat','settings'].includes(last)){
+      // หน่วงนิดให้ auth พร้อม
+      setTimeout(()=>{
+        if(document.documentElement.classList.contains('logged') || document.documentElement.classList.contains('guest')){
+          showPage(last);
+        }
+      }, 400);
+    }
+  }catch(e){}
+})();
+</script>
+
+
+<script id="report-bug-system">
+(()=>{
+  const $ = id => document.getElementById(id);
+  const btn = $('reportBugBtn');
+  const menu = $('reportBugMenu');
+  const input = $('reportBugText');
+  const sendBtn = $('reportBugSend');
+  const status = $('reportBugStatus');
+  if(!btn || !menu) return;
+
+  const ADMIN_ROOM_CODE = 'ADMINROOM'; // รหัสห้องแอดมินคงที่ (สร้างอัตโนมัติถ้ายังไม่มี)
+  const ADMIN_ROOM_NAME = 'ห้องแอดมิน · รายงานปัญหา';
+
+  function setStatus(msg){ if(status) status.textContent = msg || ''; }
+
+  function closeMenu(){ menu.classList.remove('open'); menu.hidden = true; }
+  function openMenu(){
+    try{ $('profileMenu')?.classList.remove('open'); }catch(e){}
+    menu.hidden = false;
+    menu.classList.add('open');
+    setStatus('');
+    setTimeout(()=> input?.focus(), 50);
+  }
+
+  btn.addEventListener('click', e=>{
+    e.preventDefault();
+    e.stopPropagation();
+    if(menu.classList.contains('open')) closeMenu();
+    else openMenu();
+  });
+  document.addEventListener('click', e=>{
+    if(!menu.classList.contains('open')) return;
+    if(menu.contains(e.target) || btn.contains(e.target)) return;
+    closeMenu();
+  });
+  menu.addEventListener('click', e=> e.stopPropagation());
+
+  async function ensureAdminRoom(){
+    // หาห้องแอดมินจาก code คงที่ หรือสร้างใหม่ (เจ้าของ = ผู้ส่งคนแรกที่เป็นคนสร้างระบบ — ใช้ doc id คงที่)
+    const roomId = 'admin_reports_room';
+    const ref = doc(db, 'chatRooms', roomId);
+    const snap = await getDoc(ref);
+    if(snap.exists()) return roomId;
+    const uid = currentUser?.uid || 'system';
+    await setDoc(ref, {
+      name: ADMIN_ROOM_NAME,
+      code: ADMIN_ROOM_CODE,
+      ownerUid: uid,
+      ownerName: 'ระบบรายงานปัญหา',
+      members: currentUser ? [currentUser.uid] : [],
+      inviteEnabled: false,
+      isAdminReports: true,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    return roomId;
+  }
+
+  sendBtn?.addEventListener('click', async ()=>{
+    const textValue = (input?.value || '').trim();
+    if(!textValue){ setStatus('กรุณาพิมพ์รายละเอียดปัญหา'); return; }
+    if(!currentUser){ setStatus('กรุณาลงชื่อเข้าใช้ Google ก่อนส่งรายงาน'); return; }
+    sendBtn.disabled = true;
+    setStatus('กำลังส่ง…');
+    try{
+      const roomId = await ensureAdminRoom();
+      // ใส่ผู้ส่งเป็นสมาชิกห้องแอดมิน (เพื่อให้ rules ผ่าน) + เก็บรายงาน
+      try{
+        await updateDoc(doc(db,'chatRooms', roomId), {
+          members: arrayUnion(currentUser.uid),
+          updatedAt: serverTimestamp()
+        });
+      }catch(_){}
+
+      const name = (typeof chatName === 'function' ? chatName() : null)
+        || currentUser.displayName || currentUser.email?.split('@')[0] || 'ผู้ใช้';
+      const photo = (cloudProfile && cloudProfile.photoURL) || currentUser.photoURL || null;
+
+      // 1) ข้อความในห้องแอดมิน
+      await addDoc(collection(db, 'chatRooms', roomId, 'messages'), {
+        uid: currentUser.uid,
+        name,
+        text: '🐞 รายงานปัญหา:\n' + textValue,
+        photoURL: photo,
+        isReport: true,
+        createdAt: serverTimestamp()
+      });
+
+      // 2) เก็บในคอลเลกชัน siteReports แยก (แอดมินดึงดูได้)
+      await addDoc(collection(db, 'siteReports'), {
+        uid: currentUser.uid,
+        name,
+        photoURL: photo,
+        text: textValue,
+        page: location.href,
+        userAgent: navigator.userAgent || '',
+        createdAt: serverTimestamp()
+      });
+
+      if(input) input.value = '';
+      setStatus('ส่งรายงานแล้ว เข้าห้องแอดมินเรียบร้อย');
+      setTimeout(closeMenu, 1200);
+    }catch(err){
+      console.warn('report send', err);
+      const s = String(err && (err.code || err.message) || '');
+      if(/permission|insufficient|PERMISSION/i.test(s))
+        setStatus('ส่งไม่ได้: ตรวจกฎ Firestore (chatRooms/admin_reports_room + siteReports)');
+      else
+        setStatus('ส่งไม่ได้: ' + (err && err.message ? String(err.message).slice(0,100) : 'ไม่ทราบสาเหตุ'));
+    }finally{
+      sendBtn.disabled = false;
+    }
+  });
 })();
 </script>
 
