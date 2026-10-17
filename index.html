@@ -1691,11 +1691,56 @@ function chatOpenProfileView(uid,name,photoURL){
 function chatRenderMessages(snap){const host=chatEl('chatMessages');if(!host)return;host.replaceChildren();if(snap.empty){const p=document.createElement('p');p.className='chatMuted';p.textContent='ยังไม่มีข้อความ เริ่มทักทายกันได้เลย';host.append(p);return}snap.forEach(d=>{const m=d.data()||{};const wrap=document.createElement('div');wrap.className='chatMessage'+(m.uid===currentUser?.uid?' mine':'');const row=document.createElement('div');row.className='chatMessageRow';const av=document.createElement('button');av.type='button';av.className='chatMsgAvatar'+(chatPhotoOf(m)?'':' placeholder');av.setAttribute('aria-label','ดูโปรไฟล์');const photo=chatPhotoOf(m);if(photo){const im=document.createElement('img');im.src=photo;im.alt='';im.referrerPolicy='no-referrer';av.appendChild(im);}else{av.textContent='👤';}av.addEventListener('click',()=>chatOpenProfileView(m.uid,m.name||'สมาชิก',photo));const bubble=document.createElement('div');bubble.className='chatMessageBubble';const author=document.createElement('div');author.className='chatMessageAuthor';author.textContent=m.name||'สมาชิก';author.addEventListener('click',()=>chatOpenProfileView(m.uid,m.name||'สมาชิก',photo));const body=document.createElement('div');body.textContent=m.text||'';const time=document.createElement('div');time.className='chatMessageTime';time.textContent=m.createdAt&&typeof m.createdAt.toDate==='function'?m.createdAt.toDate().toLocaleString('th-TH',{hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'}):'ส่งแล้ว';bubble.append(author,body,time);row.append(av,bubble);wrap.append(row);host.append(wrap)});host.scrollTop=host.scrollHeight}
 function chatRenderMembers(room){const host=chatEl('chatMembers');if(!host)return;host.replaceChildren();const members=Array.isArray(room.members)?room.members:[];members.forEach(uid=>{const row=document.createElement('div');row.className='chatMember';const label=document.createElement('span');label.textContent=uid===room.ownerUid?'👑 เจ้าของห้อง':uid===currentUser?.uid?'คุณ · สมาชิก':'สมาชิก';row.append(label);if(room.ownerUid===currentUser?.uid&&uid!==currentUser.uid){const kick=document.createElement('button');kick.type='button';kick.textContent='นำออก';kick.onclick=async()=>{if(!confirm('นำสมาชิกคนนี้ออกจากห้องหรือไม่?'))return;try{await updateDoc(chatRoomRef(room.id),{members:arrayRemove(uid),updatedAt:serverTimestamp()});chatStatus('นำสมาชิกออกจากห้องแล้ว')}catch(e){chatStatus('นำสมาชิกออกไม่ได้ ตรวจสอบกฎ Firestore')}};row.append(kick)}host.append(row)});if(!members.length){host.textContent='ไม่มีสมาชิก';}}
 function chatApplyRoom(room){chatState.room=room;chatEl('chatCurrentName').textContent=room.name||'ห้องพูดคุย';chatEl('chatRoomMeta').textContent=`รหัส ${room.code||'—'} · ${Array.isArray(room.members)?room.members.length:0} คน` ;chatEl('chatRename').value=room.name||'';chatEl('chatDeleteRoom').hidden=room.ownerUid!==currentUser?.uid;chatEl('chatSaveRoomName').hidden=room.ownerUid!==currentUser?.uid;chatRenderMembers({...room,id:chatState.roomId});}
-async function chatOpenRoom(id){if(!currentUser){chatStatus('ต้องลงชื่อเข้าใช้ Google ก่อนจึงจะเปิดห้องได้');return}try{const snap=await getDoc(chatRoomRef(id));if(!snap.exists()){chatStatus('ไม่พบห้องนี้');return}const room=snap.data()||{};if(!Array.isArray(room.members)||!room.members.includes(currentUser.uid)){chatStatus('บัญชีนี้ยังไม่ได้รับอนุญาตให้เข้าห้อง');return}chatStopRoomListeners();chatState.roomId=id;chatEl('chatLobby').hidden=true;chatEl('chatConversation').hidden=false;chatEl('chatRoomSettings').hidden=true;chatApplyRoom(room);chatState.roomUnsub=onSnapshot(chatRoomRef(id),s=>{if(!s.exists()){chatStatus('ห้องนี้ถูกลบแล้ว');chatBackLobby();return}const data=s.data()||{};if(!Array.isArray(data.members)||!data.members.includes(currentUser.uid)){chatStatus('คุณถูกนำออกจากห้องแล้ว');chatBackLobby();return}chatApplyRoom(data)},e=>chatStatus('อ่านข้อมูลห้องไม่ได้ ตรวจสอบสิทธิ์ Firestore'));chatState.msgUnsub=onSnapshot(query(collection(db,'chatRooms',id,'messages'),orderBy('createdAt','asc'),limit(100)),chatRenderMessages,e=>chatStatus('โหลดข้อความไม่ได้ ตรวจสอบกฎ Firestore'));chatStatus('เชื่อมต่อห้องแล้ว')}catch(e){chatStatus('เปิดห้องไม่ได้ ตรวจสอบการเชื่อมต่อและกฎ Firestore')}}
+async function chatOpenRoom(id){if(!currentUser){chatStatus('ต้องลงชื่อเข้าใช้ Google ก่อนจึงจะเปิดห้องได้');return}try{const snap=await getDoc(chatRoomRef(id));if(!snap.exists()){chatStatus('ไม่พบห้องนี้');return}const room=snap.data()||{};const uid=currentUser.uid;const isOwner=room.ownerUid===uid;let members=Array.isArray(room.members)?room.members:[];if(!members.includes(uid)){if(isOwner){try{await updateDoc(chatRoomRef(id),{members:arrayUnion(uid),updatedAt:serverTimestamp()});members=[...members,uid];}catch(_){}}else{chatStatus('บัญชีนี้ยังไม่ได้รับอนุญาตให้เข้าห้อง');return}}chatStopRoomListeners();chatState.roomId=id;chatEl('chatLobby').hidden=true;chatEl('chatConversation').hidden=false;chatEl('chatRoomSettings').hidden=true;chatApplyRoom({...room,members});chatState.roomUnsub=onSnapshot(chatRoomRef(id),s=>{if(!s.exists()){chatStatus('ห้องนี้ถูกลบแล้ว');chatBackLobby();return}const data=s.data()||{};const stillOwner=data.ownerUid===currentUser.uid;const stillMember=Array.isArray(data.members)&&data.members.includes(currentUser.uid);if(!stillMember&&!stillOwner){chatStatus('คุณถูกนำออกจากห้องแล้ว');chatBackLobby();return}if(!stillMember&&stillOwner){try{updateDoc(chatRoomRef(id),{members:arrayUnion(currentUser.uid)});}catch(_){}}chatApplyRoom(data)},e=>chatStatus('อ่านข้อมูลห้องไม่ได้ ตรวจสอบสิทธิ์ Firestore'));chatState.msgUnsub=onSnapshot(query(collection(db,'chatRooms',id,'messages'),orderBy('createdAt','asc'),limit(100)),chatRenderMessages,e=>chatStatus('โหลดข้อความไม่ได้ ตรวจสอบกฎ Firestore'));chatStatus('เชื่อมต่อห้องแล้ว')}catch(e){chatStatus('เปิดห้องไม่ได้ ตรวจสอบการเชื่อมต่อและกฎ Firestore')}}
 function chatBackLobby(){chatStopRoomListeners();chatState.roomId=null;chatState.room=null;chatEl('chatConversation').hidden=true;chatEl('chatLobby').hidden=false}
-async function chatRefreshRooms(){if(!currentUser)return;if(chatState.roomsUnsub){chatState.roomsUnsub();chatState.roomsUnsub=null}try{chatState.roomsUnsub=onSnapshot(query(collection(db,'chatRooms'),where('members','array-contains',currentUser.uid),limit(50)),snap=>{chatState.rooms=snap.docs.map(d=>({id:d.id,...d.data()}));chatRenderRooms()},()=>chatStatus('โหลดรายการห้องไม่ได้ ตรวจสอบกฎ Firestore'))}catch(e){chatStatus('ระบบห้องพูดคุยยังเชื่อมต่อไม่ได้')}}
+function chatRoomsCacheKey(uid){return 'gmp_chat_rooms_v1_'+uid}
+function chatSaveRoomsCache(rooms){
+  if(!currentUser) return;
+  try{
+    const slim=(rooms||[]).map(r=>({id:r.id,name:r.name||'',code:r.code||'',ownerUid:r.ownerUid||'',ownerName:r.ownerName||''}));
+    localStorage.setItem(chatRoomsCacheKey(currentUser.uid), JSON.stringify(slim));
+  }catch(e){}
+}
+function chatLoadRoomsCache(){
+  if(!currentUser) return [];
+  try{
+    const raw=JSON.parse(localStorage.getItem(chatRoomsCacheKey(currentUser.uid))||'[]');
+    return Array.isArray(raw)?raw:[];
+  }catch(e){return []}
+}
+async function chatRefreshRooms(){
+  if(!currentUser)return;
+  // โหลดแคชท้องถิ่นก่อน เพื่อให้เห็นห้องทันทีตอนเข้าบัญชี
+  const cached=chatLoadRoomsCache();
+  if(cached.length && !chatState.rooms.length){
+    chatState.rooms=cached;
+    chatRenderRooms();
+  }
+  if(chatState.roomsUnsub){chatState.roomsUnsub();chatState.roomsUnsub=null}
+  try{
+    chatState.roomsUnsub=onSnapshot(
+      query(collection(db,'chatRooms'),where('members','array-contains',currentUser.uid),limit(50)),
+      snap=>{
+        chatState.rooms=snap.docs.map(d=>({id:d.id,...d.data()}));
+        chatSaveRoomsCache(chatState.rooms);
+        chatRenderRooms();
+        if(chatState.rooms.length) chatStatus('โหลดห้องของคุณแล้ว · '+chatState.rooms.length+' ห้อง');
+      },
+      err=>{
+        // ถ้า query ล้มเหลว ยังใช้แคชท้องถิ่น
+        const c=chatLoadRoomsCache();
+        if(c.length){ chatState.rooms=c; chatRenderRooms(); chatStatus('ใช้รายการห้องที่บันทึกไว้ในเครื่อง (ออฟไลน์/สิทธิ์จำกัด)'); }
+        else chatStatus('โหลดรายการห้องไม่ได้ ตรวจสอบกฎ Firestore');
+      }
+    );
+  }catch(e){
+    const c=chatLoadRoomsCache();
+    if(c.length){ chatState.rooms=c; chatRenderRooms(); }
+    chatStatus('ระบบห้องพูดคุยยังเชื่อมต่อไม่ได้ — ใช้รายการที่บันทึกไว้ถ้ามี');
+  }
+}
 async function chatFindRoom(){if(!currentUser){chatStatus('กรุณาลงชื่อเข้าใช้ Google ก่อน');return}let raw=chatEl('chatFindCode').value.trim();if(!raw){chatStatus('วางลิงก์เชิญจากเจ้าของห้องก่อน');return}try{let roomId='',token='';if(raw.includes('://')){const u=new URL(raw);roomId=u.searchParams.get('room')||'';token=u.searchParams.get('invite')||''}else{chatStatus('เพื่อความเป็นส่วนตัว กรุณาวางลิงก์เชิญเต็ม ไม่ใช่แค่รหัสห้อง');return}if(!roomId||!token){chatStatus('ลิงก์นี้ไม่มีรหัสเชิญที่ถูกต้อง');return}const inv=await getDoc(chatInviteRef(roomId,token));if(!inv.exists()||inv.data().active!==true||inv.data().roomId!==roomId){chatStatus('ลิงก์เชิญไม่ถูกต้องหรือเจ้าของปิดลิงก์แล้ว');return}const invite=inv.data();const box=chatEl('chatFoundRoom');box.replaceChildren();const title=document.createElement('b');title.textContent=invite.roomName||'ห้องพูดคุยส่วนตัว';const detail=document.createElement('p');detail.textContent='ห้องส่วนตัว · ต้องใช้ลิงก์เชิญที่ถูกต้อง';const join=document.createElement('button');join.className='chatPrimary';join.type='button';join.textContent='เข้าร่วมห้องด้วยคำเชิญ';join.onclick=async()=>{join.disabled=true;try{await setDoc(chatJoinRef(roomId,currentUser.uid),{uid:currentUser.uid,roomId,inviteToken:token,createdAt:serverTimestamp()});await updateDoc(chatRoomRef(roomId),{members:arrayUnion(currentUser.uid),updatedAt:serverTimestamp()});try{await deleteDoc(chatJoinRef(roomId,currentUser.uid))}catch(_){}await chatOpenRoom(roomId);await chatRefreshRooms();box.hidden=true}catch(e){chatStatus('เข้าร่วมห้องไม่ได้ ลิงก์อาจถูกปิดหรือกฎ Firestore ยังไม่ได้เผยแพร่')}finally{join.disabled=false}};box.append(title,detail,join);box.hidden=false;chatStatus('พบลิงก์เชิญแล้ว')}catch(e){chatStatus('ค้นหาลิงก์เชิญไม่ได้ ตรวจสอบการเชื่อมต่อและกฎ Firestore')}}
-chatEl('chatCreateRoom')?.addEventListener('click',async()=>{if(!currentUser){chatStatus('กรุณาลงชื่อเข้าใช้ Google ก่อนสร้างห้อง');return}const name=chatEl('chatRoomName').value.trim()||'ห้องพูดคุยใหม่';const button=chatEl('chatCreateRoom');button.disabled=true;try{const code=chatCode();const ref=await addDoc(collection(db,'chatRooms'),{name,code,ownerUid:currentUser.uid,ownerName:chatName(),members:[currentUser.uid],inviteEnabled:true,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});chatEl('chatRoomName').value='';await chatRefreshRooms();await chatOpenRoom(ref.id);chatEl('chatRoomSettings').hidden=false;chatStatus('สร้างห้องแล้ว คัดลอกลิงก์เชิญในตั้งค่าห้องเพื่อเชิญเพื่อน')}catch(e){chatStatus('สร้างห้องไม่สำเร็จ กรุณาตรวจสอบกฎ Firestore และการลงชื่อเข้าใช้')}finally{button.disabled=false}});
+chatEl('chatCreateRoom')?.addEventListener('click',async()=>{if(!currentUser){chatStatus('กรุณาลงชื่อเข้าใช้ Google ก่อนสร้างห้อง');return}const name=chatEl('chatRoomName').value.trim()||'ห้องพูดคุยใหม่';const button=chatEl('chatCreateRoom');button.disabled=true;try{const code=chatCode();const uid=currentUser.uid;const ref=await addDoc(collection(db,'chatRooms'),{name,code,ownerUid:uid,ownerName:chatName(),members:[uid],inviteEnabled:true,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});/* กันกรณี members หลุด: ยืนยันเจ้าของอยู่ในสมาชิก */try{await updateDoc(ref,{members:arrayUnion(uid),ownerUid:uid})}catch(_){ }chatEl('chatRoomName').value='';/* บันทึกลงแคชทันที */const created={id:ref.id,name,code,ownerUid:uid,ownerName:chatName()};chatState.rooms=[created,...(chatState.rooms||[]).filter(r=>r.id!==ref.id)];chatSaveRoomsCache(chatState.rooms);chatRenderRooms();await chatRefreshRooms();await chatOpenRoom(ref.id);chatEl('chatRoomSettings').hidden=false;chatStatus('สร้างห้องแล้ว บันทึกไว้ในบัญชีแล้ว · คัดลอกลิงก์เชิญในตั้งค่าห้องเพื่อเชิญเพื่อน')}catch(e){chatStatus('สร้างห้องไม่สำเร็จ กรุณาตรวจสอบกฎ Firestore และการลงชื่อเข้าใช้')}finally{button.disabled=false}});
 chatEl('chatFindRoom')?.addEventListener('click',chatFindRoom);
 chatEl('chatBackLobby')?.addEventListener('click',chatBackLobby);
 chatEl('chatRoomSettingsToggle')?.addEventListener('click',()=>{chatEl('chatRoomSettings').hidden=!chatEl('chatRoomSettings').hidden});
@@ -1704,7 +1749,39 @@ chatEl('chatCopyInvite')?.addEventListener('click',async()=>{if(!chatState.room|
 chatEl('chatSaveRoomName')?.addEventListener('click',async()=>{if(!chatState.room||chatState.room.ownerUid!==currentUser?.uid)return;const name=chatEl('chatRename').value.trim().slice(0,48);if(!name){chatStatus('กรุณาใส่ชื่อห้อง');return}try{await updateDoc(chatRoomRef(chatState.roomId),{name,updatedAt:serverTimestamp()});chatStatus('บันทึกชื่อห้องแล้ว')}catch(e){chatStatus('บันทึกชื่อห้องไม่ได้ ตรวจสอบสิทธิ์ Firestore')}});
 chatEl('chatDeleteRoom')?.addEventListener('click',async()=>{if(!chatState.room||chatState.room.ownerUid!==currentUser?.uid||!confirm('ลบห้องนี้และหยุดการเข้าถึงของสมาชิกทั้งหมดหรือไม่?'))return;try{await deleteDoc(chatRoomRef(chatState.roomId));chatBackLobby();chatStatus('ลบห้องแล้ว')}catch(e){chatStatus('ลบห้องไม่ได้ ตรวจสอบสิทธิ์ Firestore')}});
 chatEl('chatLeaveRoom')?.addEventListener('click',async()=>{if(!chatState.room||!currentUser)return;if(chatState.room.ownerUid===currentUser.uid){chatStatus('เจ้าของห้องต้องลบห้องหรือโอนสิทธิ์ก่อนออก');return}try{await updateDoc(chatRoomRef(chatState.roomId),{members:arrayRemove(currentUser.uid),updatedAt:serverTimestamp()});chatBackLobby();chatStatus('ออกจากห้องแล้ว')}catch(e){chatStatus('ออกจากห้องไม่ได้ ตรวจสอบสิทธิ์ Firestore')}});
-chatEl('chatSendForm')?.addEventListener('submit',async e=>{e.preventDefault();if(!currentUser||!chatState.roomId)return;const input=chatEl('chatMessageInput'),textValue=input.value.trim();if(!textValue)return;const button=chatEl('chatSendButton');button.disabled=true;try{const snap=await getDoc(chatRoomRef(chatState.roomId));const room=snap.data()||{};if(!Array.isArray(room.members)||!room.members.includes(currentUser.uid))throw Error('not-member');const myPhoto=(cloudProfile&&cloudProfile.photoURL)||currentUser.photoURL||'';await addDoc(collection(db,'chatRooms',chatState.roomId,'messages'),{uid:currentUser.uid,name:chatName(),text:textValue,photoURL:myPhoto||null,createdAt:serverTimestamp()});input.value=''}catch(e){chatStatus('ส่งข้อความไม่ได้ ตรวจสอบการเชื่อมต่อและกฎ Firestore')}finally{button.disabled=false;input.focus()}});
+chatEl('chatSendForm')?.addEventListener('submit',async e=>{e.preventDefault();if(!currentUser||!chatState.roomId)return;const input=chatEl('chatMessageInput'),textValue=input.value.trim();if(!textValue)return;const button=chatEl('chatSendButton');button.disabled=true;try{
+  const snap=await getDoc(chatRoomRef(chatState.roomId));
+  if(!snap.exists()) throw Error('no-room');
+  const room=snap.data()||{};
+  const uid=currentUser.uid;
+  const isOwner=room.ownerUid===uid;
+  const members=Array.isArray(room.members)?room.members:[];
+  const isMember=members.includes(uid);
+  // เจ้าของห้องต้องพูดได้เสมอ — ถ้าหลุดจาก members ให้ใส่กลับ
+  if(!isMember){
+    if(isOwner){
+      try{ await updateDoc(chatRoomRef(chatState.roomId),{members:arrayUnion(uid),updatedAt:serverTimestamp()}); }catch(_){}
+    } else {
+      throw Error('not-member');
+    }
+  }
+  const myPhoto=(cloudProfile&&cloudProfile.photoURL)||currentUser.photoURL||'';
+  await addDoc(collection(db,'chatRooms',chatState.roomId,'messages'),{
+    uid,
+    name:chatName(),
+    text:textValue,
+    photoURL:myPhoto||null,
+    createdAt:serverTimestamp()
+  });
+  input.value='';
+  chatStatus('ส่งแล้ว');
+}catch(e){
+  const msg=String(e&&e.message||e||'');
+  if(msg.includes('not-member')) chatStatus('ส่งไม่ได้: คุณไม่ได้อยู่ในสมาชิกห้องนี้');
+  else if(msg.includes('permission')||msg.includes('PERMISSION')||msg.includes('Missing or insufficient')) chatStatus('ส่งไม่ได้: กฎ Firestore ยังไม่อนุญาตให้เขียนข้อความ (ขอให้ตรวจ rules ของ messages)');
+  else chatStatus('ส่งข้อความไม่ได้ ตรวจสอบการเชื่อมต่อและกฎ Firestore');
+  console.warn('chat send error', e);
+}finally{button.disabled=false;input.focus()}});
 const chatRoomParam=new URL(location.href).searchParams.get('room');
 const chatInviteParam=new URL(location.href).searchParams.get('invite');
 if(chatRoomParam&&chatInviteParam){chatEl('chatFindCode').value=location.href;setTimeout(()=>{if(currentUser){chatFindRoom();if(typeof showPage==='function')showPage('chat')}},700)}
