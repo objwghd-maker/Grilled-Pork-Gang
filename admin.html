@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080d0b">
+<title>แก๊งหมูปิ้ง | Admin Access</title>
+<style>
+:root{color-scheme:dark;--bg:#070b09;--panel:#101814;--line:#263b2d;--green:#5dff91;--muted:#9bb0a1;--red:#ff6262}*{box-sizing:border-box}body{margin:0;min-height:100svh;display:grid;place-items:center;padding:20px;background:radial-gradient(ellipse at 50% 0%,#153a25 0%,#0a130e 42%,var(--bg) 78%);font-family:system-ui,-apple-system,"Noto Sans Thai",sans-serif;color:#eef8f0}.wrap{width:min(100%,430px)}.brand{text-align:center;margin-bottom:22px}.logo{width:76px;height:76px;margin:0 auto 14px;border:1px solid #3b8154;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#173b25,#08110b);box-shadow:0 0 30px #35ff7620;color:var(--green);font-size:29px;font-weight:900}.eyebrow{font-size:11px;letter-spacing:4px;color:var(--green);font-weight:800}h1{font-size:25px;margin:7px 0 4px}.sub{color:var(--muted);font-size:13px}.panel{border:1px solid var(--line);border-radius:22px;padding:24px;background:linear-gradient(160deg,#111b15f5,#0b100df5);box-shadow:0 22px 65px #0008}.panel h2{font-size:18px;margin:0 0 7px}.desc{color:var(--muted);font-size:13px;line-height:1.65;margin:0 0 20px}label{display:block;font-size:13px;font-weight:700;margin:0 0 8px}input{width:100%;border:1px solid #355340;border-radius:12px;background:#070d09;color:#f4fff6;padding:14px 15px;font:inherit;outline:none}input:focus{border-color:var(--green);box-shadow:0 0 0 3px #5dff911c}button{width:100%;margin-top:14px;border:0;border-radius:12px;padding:14px;background:var(--green);color:#061109;font:inherit;font-weight:900;cursor:pointer}.error{display:none;color:#ff9292;background:#3a1414;border:1px solid #703333;border-radius:10px;padding:10px 12px;font-size:13px;margin-top:12px}.note{font-size:11px;color:#7f9385;line-height:1.6;text-align:center;margin:16px 6px 0}.hidden{display:none!important}.topline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.status{font-size:11px;color:var(--green);border:1px solid #2b6640;border-radius:99px;padding:5px 9px}.tile{border:1px solid var(--line);background:#0a110c;border-radius:14px;padding:15px;margin-top:10px}.tile strong{display:block;font-size:14px;margin-bottom:5px}.tile span{font-size:12px;color:var(--muted);line-height:1.6}.secondary{background:#1a2a20;color:#e7f7eb;border:1px solid #355340}@media(max-width:360px){.panel{padding:19px}h1{font-size:22px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="brand"><div class="logo">MP</div><div class="eyebrow">PRIVATE ADMIN PORTAL</div><h1>หมูปิ้ง · ADMIN</h1><div class="sub">พื้นที่สำหรับผู้ดูแลระบบเท่านั้น</div></header>
+<section class="panel" id="loginPanel"><h2>ยืนยันสิทธิ์แอดมิน</h2><p class="desc">กรอกรหัสผ่านแอดมินเพื่อเข้าสู่แผงควบคุม หากรหัสไม่ถูกต้องจะไม่สามารถเปิดหน้านี้ได้</p><form id="loginForm"><label for="adminPassword">รหัสผ่านแอดมิน</label><input id="adminPassword" type="password" autocomplete="current-password" placeholder="กรอกรหัสผ่าน" required><button type="submit">เข้าสู่ระบบแอดมิน</button><div class="error" id="errorMsg" role="alert">รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่</div></form></section>
+<section class="panel hidden" id="adminPanel"><div class="topline"><h2>แผงควบคุมแอดมิน</h2><span class="status">ACCESS GRANTED</span></div><p class="desc">เข้าสู่หน้าแอดมินแล้ว แต่ยังไม่ได้เชื่อมต่อข้อมูล Firebase หรือระบบจัดการรายงาน</p><div class="tile"><strong>ระบบรายงาน</strong><span>ยังไม่ได้เชื่อมต่อกับฐานข้อมูล</span></div><div class="tile"><strong>จัดการห้องพูดคุย</strong><span>ยังไม่ได้เชื่อมต่อกับฐานข้อมูล</span></div><button class="secondary" id="logoutBtn" type="button">ออกจากหน้าแอดมิน</button></section>
+<p class="note">ต้นแบบหน้าเข้าสู่ระบบเท่านั้น · ห้ามใช้รหัสที่ฝังใน HTML เป็นการรักษาความปลอดภัยจริง ต้องตรวจสิทธิ์ฝั่ง Firebase ก่อนเข้าถึงข้อมูล</p>
+</main>
+<script>
+const ADMIN_CODE = "แก๊งหมูปิ้งเค็มนิดๆ";
+const form=document.getElementById('loginForm'),password=document.getElementById('adminPassword'),errorMsg=document.getElementById('errorMsg'),loginPanel=document.getElementById('loginPanel'),adminPanel=document.getElementById('adminPanel');
+form.addEventListener('submit',function(event){event.preventDefault();if(password.value===ADMIN_CODE){errorMsg.style.display='none';loginPanel.classList.add('hidden');adminPanel.classList.remove('hidden');password.value='';}else{errorMsg.style.display='block';password.value='';password.focus();}});
+document.getElementById('logoutBtn').addEventListener('click',function(){adminPanel.classList.add('hidden');loginPanel.classList.remove('hidden');errorMsg.style.display='none';password.value='';});
+</script>
+</body>
+</html>
