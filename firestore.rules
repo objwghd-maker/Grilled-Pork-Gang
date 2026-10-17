@@ -5,6 +5,12 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'admin';
+    }
+
     function roomPath(roomId) {
       return /databases/$(database)/documents/chatRooms/$(roomId);
     }
@@ -29,6 +35,11 @@ service cloud.firestore {
         && get(roomPath(roomId)).data.inviteEnabled == true;
     }
 
+    match /admins/{uid} {
+      allow get: if signedIn() && request.auth.uid == uid;
+      allow list, create, update, delete: if false;
+    }
+
     match /chatRooms/{roomId} {
       allow create: if signedIn()
         && request.resource.data.ownerUid == request.auth.uid
@@ -39,7 +50,7 @@ service cloud.firestore {
         && request.resource.data.code is string
         && request.resource.data.name is string;
 
-      allow get, list: if isMember(roomId);
+      allow get, list: if isMember(roomId) || isAdmin();
 
       allow update: if signedIn() && (
         (
@@ -76,6 +87,11 @@ service cloud.firestore {
           && resource.data.members.hasAll(request.resource.data.members)
           && request.resource.data.members.size() == resource.data.members.size() - 1
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members', 'updatedAt'])
+        )
+        || (
+          isAdmin()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['inviteEnabled', 'updatedAt'])
+          && request.resource.data.inviteEnabled is bool
         )
       );
 
