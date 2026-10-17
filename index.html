@@ -1491,13 +1491,21 @@ function makeSmallImage(file){
 }
 
 
+function readGuestMode(){
+  try { return localStorage.getItem("gangmoopping_guest_mode") === "1"; }
+  catch(_) { return false; }
+}
+function writeGuestMode(){
+  try { localStorage.setItem("gangmoopping_guest_mode", "1"); return true; }
+  catch(_) { return false; }
+}
 function sync(){
   const inSite = location.hash === "#in";
-  const guest = localStorage.getItem("gangmoopping_guest_mode") === "1" && !currentUser;
+  const guest = readGuestMode() && !currentUser;
   document.documentElement.classList.toggle("in", inSite);
   document.documentElement.classList.toggle("logged", !!currentUser && inSite);
   document.documentElement.classList.toggle("guest", guest && inSite);
-  window.scrollTo(0,0);
+  try { window.scrollTo(0,0); } catch(_) {}
 }
 let entryLoading = false;
 $("go").onclick = () => {
@@ -1506,27 +1514,37 @@ $("go").onclick = () => {
   const loader = $("entryLoader");
   const bar = $("entryBar");
   const percent = $("entryPercent");
+  if(!loader || !bar || !percent){ entryLoading = false; return; }
   loader.classList.add("show");
   loader.setAttribute("aria-hidden", "false");
   bar.style.width = "1%";
   percent.textContent = "1%";
   const start = performance.now();
   const duration = 1000;
+  function finishEntry(){
+    try {
+      if(!currentUser) writeGuestMode();
+      if(location.hash !== "#in") location.hash = "#in";
+      sync();
+    } catch(_) {
+      document.documentElement.classList.add("in");
+      document.documentElement.classList.remove("logged");
+      document.documentElement.classList.add("guest");
+    } finally {
+      loader.classList.remove("show");
+      loader.setAttribute("aria-hidden", "true");
+      entryLoading = false;
+    }
+  }
   function tick(now){
     const value = Math.min(100, Math.max(1, Math.floor(1 + ((now-start)/duration)*99)));
     bar.style.width = value + "%";
     percent.textContent = value + "%";
     if(value < 100){ requestAnimationFrame(tick); return; }
-    setTimeout(() => {
-      if(!currentUser) localStorage.setItem("gangmoopping_guest_mode", "1");
-      location.hash = "in";
-      sync();
-      loader.classList.remove("show");
-      loader.setAttribute("aria-hidden", "true");
-      entryLoading = false;
-    }, 70);
+    setTimeout(finishEntry, 70);
   }
-  requestAnimationFrame(tick);
+  try { requestAnimationFrame(tick); }
+  catch(_) { finishEntry(); }
 };
 window.addEventListener("hashchange",sync);
 sync();
@@ -2106,8 +2124,6 @@ chatEl('chatSendForm')?.addEventListener('submit', async e=>{
   linkAudio.addEventListener('ended',()=>{ linkPlaying=false; state(3,false); if(linkStatus) linkStatus.textContent='เพลงจบแล้ว'; });
   linkAudio.addEventListener('error',()=>{ if(linkPlaying){ linkPlaying=false; state(3,false); if(linkStatus) linkStatus.textContent='เล่นไฟล์เสียงไม่ได้'; } });
  }
-
-})();
 </script>
 
 
