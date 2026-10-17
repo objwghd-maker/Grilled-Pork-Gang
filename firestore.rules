@@ -5,12 +5,6 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isAdmin() {
-      return signedIn()
-        && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
-        && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'admin';
-    }
-
     function roomPath(roomId) {
       return /databases/$(database)/documents/chatRooms/$(roomId);
     }
@@ -18,13 +12,7 @@ service cloud.firestore {
     function isMember(roomId) {
       return signedIn()
         && exists(roomPath(roomId))
-        && (
-          get(roomPath(roomId)).data.ownerUid == request.auth.uid
-          || (
-            get(roomPath(roomId)).data.members is list
-            && request.auth.uid in get(roomPath(roomId)).data.members
-          )
-        );
+        && request.auth.uid in get(roomPath(roomId)).data.members;
     }
 
     function validInvite(roomId, token) {
@@ -33,11 +21,6 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/chatRooms/$(roomId)/invites/$(token)).data.roomId == roomId
         && get(/databases/$(database)/documents/chatRooms/$(roomId)/invites/$(token)).data.active == true
         && get(roomPath(roomId)).data.inviteEnabled == true;
-    }
-
-    match /admins/{uid} {
-      allow get: if signedIn() && request.auth.uid == uid;
-      allow list, create, update, delete: if false;
     }
 
     match /chatRooms/{roomId} {
@@ -50,7 +33,7 @@ service cloud.firestore {
         && request.resource.data.code is string
         && request.resource.data.name is string;
 
-      allow get, list: if isMember(roomId) || isAdmin();
+      allow get, list: if isMember(roomId);
 
       allow update: if signedIn() && (
         (
@@ -87,11 +70,6 @@ service cloud.firestore {
           && resource.data.members.hasAll(request.resource.data.members)
           && request.resource.data.members.size() == resource.data.members.size() - 1
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members', 'updatedAt'])
-        )
-        || (
-          isAdmin()
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['inviteEnabled', 'updatedAt'])
-          && request.resource.data.inviteEnabled is bool
         )
       );
 
