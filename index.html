@@ -634,7 +634,7 @@ button{touch-action:manipulation}
 #page-chat #chatMainShell.active{display:flex!important}
 html.chat-fullscreen #siteApp .topbar,
 html.chat-fullscreen #siteApp .drawer{visibility:hidden!important;pointer-events:none!important}
-html.chat-fullscreen #authTop{z-index:2147483001}
+/* auth hidden in chat */
 </style>
 
 <style id="gmp-single-page-lock">
@@ -657,15 +657,15 @@ html.fish-fullscreen #siteApp .drawer{
 #authTop{display:none;align-items:center;gap:8px}
 html.in.logged #authTop,html.in.guest #authTop{display:flex!important;visibility:visible!important;pointer-events:auto!important}
 #reportBugBtn{
-  width:46px;height:46px;border:2px solid rgba(255,255,255,.35);border-radius:50%;
-  background:#111;padding:6px;display:flex;align-items:center;justify-content:center;
+  width:46px;height:46px;border:2px solid rgba(255,60,60,.45);border-radius:50%;
+  background:#0a0a0a;padding:4px;display:flex;align-items:center;justify-content:center;
   cursor:pointer;overflow:hidden;flex:0 0 auto;box-sizing:border-box;
   box-shadow:0 0 0 3px rgba(255,152,0,.10),0 4px 14px rgba(0,0,0,.12);
 }
 #reportBugBtn img{
   width:100%;height:100%;object-fit:contain;object-position:center;
-  /* ตัดพื้น เหลือโลโก้ขาว */
-  filter:brightness(0) invert(1);
+  /* โลโก้สีแดงตามต้นฉบับ — ไม่ย้อมขาว */
+  filter:none;
   pointer-events:none;user-select:none;-webkit-user-drag:none;
 }
 #reportBugBtn:active{transform:scale(.96)}
@@ -698,8 +698,59 @@ html.in.logged #authTop,html.in.guest #authTop{display:flex!important;visibility
 #reportBugMenu .reportBugSendBtn:disabled{opacity:.55;cursor:wait}
 #reportBugMenu .reportBugStatus{font-size:12px;color:#aab5c8;margin-top:8px;min-height:16px;line-height:1.4}
 html.chat-fullscreen #reportBugBtn,html.fish-fullscreen #reportBugBtn{/* ยังโชว์บนแถบ auth */ }
-html.chat-fullscreen #authTop,html.fish-fullscreen #authTop{z-index:2147483001!important}
+/* authTop ซ่อนในเกมแล้ว — ไม่ยกระดับ z-index */
 #reportBugMenu{z-index:2147483010}
+</style>
+
+<style id="gmp-landing-and-game-ui-lock">
+/* หน้าเข้าเว็บ: ซ่อนสนิทเมื่ออยู่ข้างใน */
+html.in #bg,
+html.in #go,
+html.in #entryLoader,
+html.in > body > h1:first-of-type,
+body > h1.landing-only,
+html.in body > h1{
+  display:none!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+  opacity:0!important;
+  z-index:-1!important;
+}
+/* อย่าให้ h1 หน้าแรกของ landing ไปบังหน้าในเว็บ — จำกัดเฉพาะลูก body โดยตรง */
+body > h1{
+  position:fixed;top:0;left:0;right:0;margin:0;padding:16px;color:#fff;
+  font-size:clamp(1.4rem,5vw,2.4rem);text-align:center;
+  text-shadow:0 2px 8px #000,0 0 3px #000;z-index:2;
+}
+#siteApp h1,#siteApp .welcome h1,#inner h1,#inner h2{
+  position:static!important;text-shadow:none!important;z-index:auto!important;
+}
+/* ในเกม / แชทเต็มจอ / มงคล: ไม่โชว์โปรไฟล์ + โลโก้แดง + คะแนน */
+html.fish-fullscreen #authTop,
+html.chat-fullscreen #authTop,
+html.mongkol-fullscreen #authTop,
+html.fish-fullscreen #reportBugMenu,
+html.chat-fullscreen #reportBugMenu,
+html.mongkol-fullscreen #reportBugMenu,
+html.fish-fullscreen #profileMenu,
+html.chat-fullscreen #profileMenu,
+html.mongkol-fullscreen #profileMenu{
+  display:none!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+  opacity:0!important;
+}
+/* guest/logged อยู่ในไซต์: บังคับซ่อน landing ซ้ำ */
+html.in.guest #bg,html.in.guest #go,html.in.guest #entryLoader,
+html.in.logged #bg,html.in.logged #go,html.in.logged #entryLoader{
+  display:none!important;visibility:hidden!important;pointer-events:none!important;
+}
+html.in.guest #siteApp,html.in.logged #siteApp{
+  display:block!important;visibility:visible!important;
+}
+html.in.guest #inner,html.in.logged #inner{
+  display:none!important;visibility:hidden!important;pointer-events:none!important;
+}
 </style>
 </head>
 <body>
@@ -744,7 +795,7 @@ html.chat-fullscreen #authTop,html.fish-fullscreen #authTop{z-index:2147483001!i
 </div>
 
 <main id="siteApp" aria-label="เว็บไซต์แก๊งหมูปิ้ง">
-  <header class="topbar"><span aria-label="8" style="font-size:12px;font-weight:800;color:#777;min-width:10px;text-align:center">8</span><button class="hamb" id="siteMenuButton" aria-label="เปิดหมวดหมู่">☰</button><div class="brand">เว็บไซต์แก๊งหมูปิ้ง</div></header>
+  <header class="topbar"><span aria-label="10" style="font-size:12px;font-weight:800;color:#777;min-width:10px;text-align:center">10</span><button class="hamb" id="siteMenuButton" aria-label="เปิดหมวดหมู่">☰</button><div class="brand">เว็บไซต์แก๊งหมูปิ้ง</div></header>
   <nav class="drawer" id="siteDrawer" aria-label="หมวดหมู่">
     <button class="navitem" data-page="home">หน้าแรก</button>
     <button class="navitem" data-page="music">หมวดเพลง</button>
@@ -1491,21 +1542,13 @@ function makeSmallImage(file){
 }
 
 
-function readGuestMode(){
-  try { return localStorage.getItem("gangmoopping_guest_mode") === "1"; }
-  catch(_) { return false; }
-}
-function writeGuestMode(){
-  try { localStorage.setItem("gangmoopping_guest_mode", "1"); return true; }
-  catch(_) { return false; }
-}
 function sync(){
   const inSite = location.hash === "#in";
-  const guest = readGuestMode() && !currentUser;
+  const guest = localStorage.getItem("gangmoopping_guest_mode") === "1" && !currentUser;
   document.documentElement.classList.toggle("in", inSite);
   document.documentElement.classList.toggle("logged", !!currentUser && inSite);
   document.documentElement.classList.toggle("guest", guest && inSite);
-  try { window.scrollTo(0,0); } catch(_) {}
+  window.scrollTo(0,0);
 }
 let entryLoading = false;
 $("go").onclick = () => {
@@ -1514,37 +1557,27 @@ $("go").onclick = () => {
   const loader = $("entryLoader");
   const bar = $("entryBar");
   const percent = $("entryPercent");
-  if(!loader || !bar || !percent){ entryLoading = false; return; }
   loader.classList.add("show");
   loader.setAttribute("aria-hidden", "false");
   bar.style.width = "1%";
   percent.textContent = "1%";
   const start = performance.now();
   const duration = 1000;
-  function finishEntry(){
-    try {
-      if(!currentUser) writeGuestMode();
-      if(location.hash !== "#in") location.hash = "#in";
-      sync();
-    } catch(_) {
-      document.documentElement.classList.add("in");
-      document.documentElement.classList.remove("logged");
-      document.documentElement.classList.add("guest");
-    } finally {
-      loader.classList.remove("show");
-      loader.setAttribute("aria-hidden", "true");
-      entryLoading = false;
-    }
-  }
   function tick(now){
     const value = Math.min(100, Math.max(1, Math.floor(1 + ((now-start)/duration)*99)));
     bar.style.width = value + "%";
     percent.textContent = value + "%";
     if(value < 100){ requestAnimationFrame(tick); return; }
-    setTimeout(finishEntry, 70);
+    setTimeout(() => {
+      if(!currentUser) localStorage.setItem("gangmoopping_guest_mode", "1");
+      location.hash = "in";
+      sync();
+      loader.classList.remove("show");
+      loader.setAttribute("aria-hidden", "true");
+      entryLoading = false;
+    }, 70);
   }
-  try { requestAnimationFrame(tick); }
-  catch(_) { finishEntry(); }
+  requestAnimationFrame(tick);
 };
 window.addEventListener("hashchange",sync);
 sync();
@@ -2124,6 +2157,8 @@ chatEl('chatSendForm')?.addEventListener('submit', async e=>{
   linkAudio.addEventListener('ended',()=>{ linkPlaying=false; state(3,false); if(linkStatus) linkStatus.textContent='เพลงจบแล้ว'; });
   linkAudio.addEventListener('error',()=>{ if(linkPlaying){ linkPlaying=false; state(3,false); if(linkStatus) linkStatus.textContent='เล่นไฟล์เสียงไม่ได้'; } });
  }
+
+})();
 </script>
 
 
@@ -2298,10 +2333,11 @@ chatEl('chatSendForm')?.addEventListener('submit', async e=>{
  launch.addEventListener('click',()=>{
    if(running||timer)return;
    launch.hidden=true;if(wrap)wrap.hidden=false;let n=0;
-   timer=setInterval(()=>{n=Math.min(100,n+Math.ceil(Math.random()*14)+2);if(fill)fill.style.width=n+'%';if(status)status.textContent='กำลังโหลด '+n+'%';if(n>=100){clearInterval(timer);timer=null;running=true;screen.hidden=true;screen.style.display='none';frame.hidden=false;frame.style.display='block';if(controls){controls.hidden=false;controls.style.display='block';controls.style.zIndex='2147483647';controls.style.pointerEvents='auto'}toggleMenu(false);}},40);
+   timer=setInterval(()=>{n=Math.min(100,n+Math.ceil(Math.random()*14)+2);if(fill)fill.style.width=n+'%';if(status)status.textContent='กำลังโหลด '+n+'%';if(n>=100){clearInterval(timer);timer=null;running=true;screen.hidden=true;screen.style.display='none';frame.hidden=false;frame.style.display='block';try{document.documentElement.classList.add('mongkol-fullscreen')}catch(e){};if(controls){controls.hidden=false;controls.style.display='block';controls.style.zIndex='2147483647';controls.style.pointerEvents='auto'}toggleMenu(false);}},40);
  });
  function exitGame(){
    if(timer){clearInterval(timer);timer=null}
+   try{document.documentElement.classList.remove('mongkol-fullscreen')}catch(e){}
    frame.hidden=true;frame.style.display='none';
    if(controls){controls.hidden=true;controls.style.display='none'}
    toggleMenu(false);screen.hidden=false;screen.style.display='flex';launch.hidden=false;
@@ -2848,6 +2884,98 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
       sendBtn.disabled = false;
     }
   });
+})();
+</script>
+
+
+<script id="gmp-game-auth-hide-and-landing-fix">
+(()=>{
+  const $ = id => document.getElementById(id);
+  function hideLandingHard(){
+    ['bg','go','entryLoader'].forEach(id=>{
+      const el = $(id);
+      if(!el) return;
+      el.style.display = 'none';
+      el.style.visibility = 'hidden';
+      el.style.pointerEvents = 'none';
+      el.setAttribute('aria-hidden','true');
+    });
+    // h1 ลูกตรงของ body เท่านั้น (หัวข้อหน้าเข้าเว็บ)
+    try{
+      [...document.body.children].forEach(el=>{
+        if(el.tagName === 'H1'){
+          el.style.display = 'none';
+          el.style.visibility = 'hidden';
+          el.setAttribute('aria-hidden','true');
+        }
+      });
+    }catch(e){}
+  }
+  function showLanding(){
+    const bg=$('bg'), go=$('go');
+    if(bg){ bg.style.display=''; bg.style.visibility=''; bg.style.pointerEvents=''; }
+    if(go){ go.style.display=''; go.style.visibility=''; go.style.pointerEvents=''; }
+    try{
+      [...document.body.children].forEach(el=>{
+        if(el.tagName === 'H1'){
+          el.style.display=''; el.style.visibility=''; el.removeAttribute('aria-hidden');
+        }
+      });
+    }catch(e){}
+  }
+  function syncGameUi(){
+    const html = document.documentElement;
+    const fish = $('fishGameContainer');
+    const shell = $('chatMainShell');
+    const frame = $('mongkolGameFrame');
+    const inFish = !!(fish && fish.classList.contains('active'));
+    const inChat = !!(shell && shell.classList.contains('active'));
+    const inMongkol = !!(frame && !frame.hidden && getComputedStyle(frame).display !== 'none');
+    html.classList.toggle('fish-fullscreen', inFish);
+    html.classList.toggle('chat-fullscreen', inChat);
+    html.classList.toggle('mongkol-fullscreen', inMongkol);
+    // ในไซต์ต้องซ่อน landing
+    if(html.classList.contains('in')){
+      hideLandingHard();
+      const app = $('siteApp');
+      if(app && (html.classList.contains('logged') || html.classList.contains('guest'))){
+        app.style.display = 'block';
+        app.style.visibility = 'visible';
+      }
+      const inn = $('inner');
+      if(inn && (html.classList.contains('logged') || html.classList.contains('guest'))){
+        inn.style.display = 'none';
+        inn.style.visibility = 'hidden';
+      }
+    } else {
+      // อยู่นอกไซต์ — โชว์ landing ถ้าไม่ได้โหลด
+      if(!$('entryLoader')?.classList.contains('show')) showLanding();
+    }
+  }
+  // ดักการเข้าเว็บ
+  const origSync = window.sync;
+  // เรียกเป็นระยะ + หลัง hashchange
+  setInterval(syncGameUi, 800);
+  window.addEventListener('hashchange', ()=> setTimeout(syncGameUi, 30));
+  document.addEventListener('DOMContentLoaded', syncGameUi);
+  window.addEventListener('load', syncGameUi);
+  // MutationObserver เกม/แชท
+  try{
+    const obs = new MutationObserver(()=> syncGameUi());
+    ['fishGameContainer','chatMainShell','mongkolGameFrame'].forEach(id=>{
+      const el = $(id);
+      if(el) obs.observe(el, { attributes:true, attributeFilter:['class','style','hidden'] });
+    });
+  }catch(e){}
+  // หลังกดเข้าเว็บ
+  const go = $('go');
+  if(go){
+    go.addEventListener('click', ()=> setTimeout(syncGameUi, 1100), true);
+  }
+  // expose
+  window.gmpSyncGameUi = syncGameUi;
+  window.gmpHideLandingHard = hideLandingHard;
+  setTimeout(syncGameUi, 100);
 })();
 </script>
 
