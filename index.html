@@ -1129,7 +1129,7 @@ function mkFish(){
  f.scale.setScalar(s);f.userData={mat:c,t,cx:(Math.random()-.5)*16,cz:-6-Math.random()*10,r:1.5+Math.random()*3,a:Math.random()*6.28,sp:.3+Math.random()*.4,y:-1-Math.random()*1.2};
  scene.add(f);return f;
 }
-function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.fov=w<h?75:60;camera.updateProjectionMatrix()}
+function resize(){if(typeof renderer==="undefined"||!renderer)return;const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.fov=w<h?75:60;camera.updateProjectionMatrix()}
 addEventListener('resize',resize);
 
 // ---- game state ----
@@ -2102,63 +2102,15 @@ chatEl('chatSendForm')?.addEventListener('submit', async e=>{
   }
 })();
 
- document.querySelectorAll('[data-restore-loop]').forEach(btn=>btn.addEventListener('click',()=>{
-  const a=audios[btn.dataset.restoreLoop];
-  if(!a) return;
-  a.loop=!a.loop;
-  btn.setAttribute('aria-pressed',String(a.loop));
-  btn.textContent='วนซ้ำ: '+(a.loop?'เปิด':'ปิด');
- }));
 
- // วงกลม 3 — วิธีฝัง YouTube แบบที่เล่นได้จริง + ซ่อน/เปิดคลิปได้
- if(buttons[3]){
-  buttons[3].addEventListener('click', async ()=>{
-   if(linkPlaying){
-    stopLinkPlayers();
-    if(linkStatus) linkStatus.textContent='หยุดเพลงแล้ว';
-    return;
-   }
-   const raw=(linkInput && linkInput.value || '').trim();
-   if(!raw){ if(linkStatus) linkStatus.textContent='กรุณาวางลิงก์ก่อน'; return; }
-   try{ localStorage.setItem(LINK_KEY, raw); }catch(e){}
-   stopFixedAudios();
-   stopLinkPlayers();
-
-   const id=ytId(raw);
-   if(id){
-    if(!ytFrame){ if(linkStatus) linkStatus.textContent='ไม่พบช่องเล่นคลิป'; return; }
-    ytFrame.innerHTML='<iframe title="YouTube music player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen playsinline src="https://www.youtube-nocookie.com/embed/'+encodeURIComponent(id)+'?autoplay=1&playsinline=1"></iframe>';
-    linkPlaying=true;
-    state(3,true);
-    showClipArea(true);
-    setCover(false);
-    if(linkStatus) linkStatus.textContent = 'กำลังเล่น';
-    return;
-   }
-
-   if(linkAudio){
-    try{
-     linkAudio.src=raw;
-     await linkAudio.play();
-     linkPlaying=true;
-     state(3,true);
-     if(linkStatus) linkStatus.textContent='กำลังเล่นไฟล์เสียง…';
-    }catch(e){
-     linkPlaying=false;
-     state(3,false);
-     if(linkStatus) linkStatus.textContent='เล่นไม่ได้: ตรวจลิงก์หรือการเชื่อมต่อ';
-    }
-   }else if(linkStatus){
-    linkStatus.textContent='ไม่พบเครื่องเล่นเสียง';
-   }
-  });
- }
- if(linkAudio){
-  linkAudio.addEventListener('ended',()=>{ linkPlaying=false; state(3,false); if(linkStatus) linkStatus.textContent='เพลงจบแล้ว'; });
-  linkAudio.addEventListener('error',()=>{ if(linkPlaying){ linkPlaying=false; state(3,false); if(linkStatus) linkStatus.textContent='เล่นไฟล์เสียงไม่ได้'; } });
- }
-
-})();
+// === expose to window for non-module widgets (report bug, etc.) ===
+try{
+  window.db = db;
+  window.gmpFs = { doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, collection, arrayUnion, arrayRemove, serverTimestamp, onSnapshot, query, where, orderBy, limit };
+  Object.defineProperty(window, 'currentUser', { get(){ return currentUser; }, configurable: true });
+  Object.defineProperty(window, 'cloudProfile', { get(){ return cloudProfile; }, configurable: true });
+  window.chatName = typeof chatName === 'function' ? chatName : (()=> 'สมาชิก');
+}catch(e){ console.warn('gmp expose', e); }
 </script>
 
 
@@ -2781,11 +2733,11 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
   const status = $('reportBugStatus');
   if(!btn || !menu) return;
 
-  const ADMIN_ROOM_CODE = 'ADMINROOM'; // รหัสห้องแอดมินคงที่ (สร้างอัตโนมัติถ้ายังไม่มี)
+  const ADMIN_ROOM_ID = 'admin_reports_room';
+  const ADMIN_ROOM_CODE = 'ADMINROOM';
   const ADMIN_ROOM_NAME = 'ห้องแอดมิน · รายงานปัญหา';
 
   function setStatus(msg){ if(status) status.textContent = msg || ''; }
-
   function closeMenu(){ menu.classList.remove('open'); menu.hidden = true; }
   function openMenu(){
     try{ $('profileMenu')?.classList.remove('open'); }catch(e){}
@@ -2808,66 +2760,74 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
   });
   menu.addEventListener('click', e=> e.stopPropagation());
 
+  function fs(){
+    return window.gmpFs || null;
+  }
+  function user(){
+    return window.currentUser || null;
+  }
+
   async function ensureAdminRoom(){
-    // หาห้องแอดมินจาก code คงที่ หรือสร้างใหม่ (เจ้าของ = ผู้ส่งคนแรกที่เป็นคนสร้างระบบ — ใช้ doc id คงที่)
-    const roomId = 'admin_reports_room';
-    const ref = doc(db, 'chatRooms', roomId);
-    const snap = await getDoc(ref);
-    if(snap.exists()) return roomId;
-    const uid = currentUser?.uid || 'system';
-    await setDoc(ref, {
+    const F = fs();
+    const u = user();
+    if(!F || !window.db) throw new Error('ระบบยังไม่พร้อม');
+    const ref = F.doc(window.db, 'chatRooms', ADMIN_ROOM_ID);
+    const snap = await F.getDoc(ref);
+    if(snap.exists()) return ADMIN_ROOM_ID;
+    await F.setDoc(ref, {
       name: ADMIN_ROOM_NAME,
       code: ADMIN_ROOM_CODE,
-      ownerUid: uid,
+      ownerUid: u ? u.uid : 'system',
       ownerName: 'ระบบรายงานปัญหา',
-      members: currentUser ? [currentUser.uid] : [],
+      members: u ? [u.uid] : [],
       inviteEnabled: false,
       isAdminReports: true,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
+      createdAt: F.serverTimestamp(),
+      updatedAt: F.serverTimestamp()
     }, { merge: true });
-    return roomId;
+    return ADMIN_ROOM_ID;
   }
 
   sendBtn?.addEventListener('click', async ()=>{
     const textValue = (input?.value || '').trim();
     if(!textValue){ setStatus('กรุณาพิมพ์รายละเอียดปัญหา'); return; }
-    if(!currentUser){ setStatus('กรุณาลงชื่อเข้าใช้ Google ก่อนส่งรายงาน'); return; }
+    const u = user();
+    if(!u){ setStatus('กรุณาลงชื่อเข้าใช้ Google ก่อนส่งรายงาน'); return; }
+    const F = fs();
+    if(!F || !window.db){ setStatus('ระบบยังโหลดไม่ครบ รอสักครู่แล้วลองใหม่'); return; }
     sendBtn.disabled = true;
     setStatus('กำลังส่ง…');
     try{
       const roomId = await ensureAdminRoom();
-      // ใส่ผู้ส่งเป็นสมาชิกห้องแอดมิน (เพื่อให้ rules ผ่าน) + เก็บรายงาน
       try{
-        await updateDoc(doc(db,'chatRooms', roomId), {
-          members: arrayUnion(currentUser.uid),
-          updatedAt: serverTimestamp()
+        await F.updateDoc(F.doc(window.db, 'chatRooms', roomId), {
+          members: F.arrayUnion(u.uid),
+          updatedAt: F.serverTimestamp()
         });
       }catch(_){}
 
-      const name = (typeof chatName === 'function' ? chatName() : null)
-        || currentUser.displayName || currentUser.email?.split('@')[0] || 'ผู้ใช้';
-      const photo = (cloudProfile && cloudProfile.photoURL) || currentUser.photoURL || null;
+      const prof = window.cloudProfile || {};
+      const name = (typeof window.chatName === 'function' ? window.chatName() : null)
+        || prof.displayName || u.displayName || (u.email && u.email.split('@')[0]) || 'ผู้ใช้';
+      const photo = prof.photoURL || u.photoURL || null;
 
-      // 1) ข้อความในห้องแอดมิน
-      await addDoc(collection(db, 'chatRooms', roomId, 'messages'), {
-        uid: currentUser.uid,
+      await F.addDoc(F.collection(window.db, 'chatRooms', roomId, 'messages'), {
+        uid: u.uid,
         name,
         text: '🐞 รายงานปัญหา:\n' + textValue,
         photoURL: photo,
         isReport: true,
-        createdAt: serverTimestamp()
+        createdAt: F.serverTimestamp()
       });
 
-      // 2) เก็บในคอลเลกชัน siteReports แยก (แอดมินดึงดูได้)
-      await addDoc(collection(db, 'siteReports'), {
-        uid: currentUser.uid,
+      await F.addDoc(F.collection(window.db, 'siteReports'), {
+        uid: u.uid,
         name,
         photoURL: photo,
         text: textValue,
         page: location.href,
         userAgent: navigator.userAgent || '',
-        createdAt: serverTimestamp()
+        createdAt: F.serverTimestamp()
       });
 
       if(input) input.value = '';
@@ -2877,7 +2837,7 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
       console.warn('report send', err);
       const s = String(err && (err.code || err.message) || '');
       if(/permission|insufficient|PERMISSION/i.test(s))
-        setStatus('ส่งไม่ได้: ตรวจกฎ Firestore (chatRooms/admin_reports_room + siteReports)');
+        setStatus('ส่งไม่ได้: ตรวจกฎ Firestore (admin_reports_room + siteReports)');
       else
         setStatus('ส่งไม่ได้: ' + (err && err.message ? String(err.message).slice(0,100) : 'ไม่ทราบสาเหตุ'));
     }finally{
