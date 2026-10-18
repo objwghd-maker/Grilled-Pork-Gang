@@ -836,7 +836,7 @@ html.in.guest #inner,html.in.logged #inner{
       <article class="restoreCard">
         <div class="restoreDisc" id="restoreDisc1"><img src="https://i.postimg.cc/JhG35XfW/file-000000009fa08211b7150f91d3a18f19.png" alt="โลโก้แก๊งหมูปิ้ง"></div>
         <div class="restoreTitle">เพลงที่ 1</div>
-        <audio id="restoreAudio1" crossorigin="anonymous" preload="none" loop src="https://github.com/objwghd-maker/9746953489E2/raw/refs/heads/main/video_20261015_002902.mp3"></audio>
+        <audio id="restoreAudio1" crossorigin="anonymous" preload="none" loop src="https://raw.githubusercontent.com/objwghd-maker/9746953489E2/refs/heads/main/video_20261015_002902.mp3"></audio>
         <div class="restoreControls"><button class="restoreBtn" type="button" data-restore-play="1">▶ เล่นเพลง</button><button class="restoreBtn secondary" type="button" data-restore-loop="1" aria-pressed="true">วนซ้ำ: เปิด</button></div>
         <div class="restoreVolumeRow">
           <label for="restoreVol1">ระดับเสียง</label>
@@ -848,7 +848,7 @@ html.in.guest #inner,html.in.logged #inner{
       <article class="restoreCard">
         <div class="restoreDisc" id="restoreDisc2"><img src="https://i.postimg.cc/JhG35XfW/file-000000009fa08211b7150f91d3a18f19.png" alt="โลโก้แก๊งหมูปิ้ง"></div>
         <div class="restoreTitle">เพลงที่ 2</div>
-        <audio id="restoreAudio2" crossorigin="anonymous" preload="none" loop src="https://github.com/objwghd-maker/8388440202/raw/refs/heads/main/Screenrecording_20261015_002055.mp3"></audio>
+        <audio id="restoreAudio2" crossorigin="anonymous" preload="none" loop src="https://raw.githubusercontent.com/objwghd-maker/8388440202/refs/heads/main/Screenrecording_20261015_002055.mp3"></audio>
         <div class="restoreControls"><button class="restoreBtn" type="button" data-restore-play="2">▶ เล่นเพลง</button><button class="restoreBtn secondary" type="button" data-restore-loop="2" aria-pressed="true">วนซ้ำ: เปิด</button></div>
         <div class="restoreVolumeRow">
           <label for="restoreVol2">ระดับเสียง</label>
@@ -3057,7 +3057,7 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
       }
       const g = ctx.createGain();
       mediaSources[n].connect(g);
-      g.connect(ctx.destination);
+      const lim=ctx.createDynamicsCompressor();lim.threshold.value=-2;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=0.003;lim.release.value=0.1;g.connect(lim);lim.connect(ctx.destination);
       gainNodes[n] = g;
           el.volume = 1;
       return g;
@@ -3505,7 +3505,8 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
 #siteApp .navitem::after{content:"";position:absolute;left:16px;top:50%;width:7px;height:7px;border-top:2px solid color-mix(in srgb,var(--gmp-accent) 80%,#555);border-left:2px solid color-mix(in srgb,var(--gmp-accent) 80%,#555);transform:translateY(-50%) rotate(-45deg);opacity:.75;pointer-events:none;transition:left .2s ease,opacity .2s ease}
 #siteApp .navitem:hover::after{left:12px;opacity:1}
 #siteApp .navitem#openSignIn{margin-top:20px;border-color:rgba(255,152,0,.5)}
-#siteApp .navitem#guestExit{border-color:rgba(240,68,56,.4);color:#b42318}</style>
+#siteApp .navitem#guestExit{border-color:rgba(240,68,56,.4);color:#b42318}#page-music .restoreVolumeRow input[type=range]{height:36px;touch-action:none}
+</style>
 <script id="menu-exclusive">
 (()=>{
 const $=id=>document.getElementById(id);
