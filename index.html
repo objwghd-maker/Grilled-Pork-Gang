@@ -836,7 +836,7 @@ html.in.guest #inner,html.in.logged #inner{
       <article class="restoreCard">
         <div class="restoreDisc" id="restoreDisc1"><img src="https://i.postimg.cc/JhG35XfW/file-000000009fa08211b7150f91d3a18f19.png" alt="โลโก้แก๊งหมูปิ้ง"></div>
         <div class="restoreTitle">เพลงที่ 1</div>
-        <audio id="restoreAudio1" preload="none" loop src="https://github.com/objwghd-maker/9746953489E2/raw/refs/heads/main/video_20261015_002902.mp3"></audio>
+        <audio id="restoreAudio1" crossorigin="anonymous" preload="none" loop src="https://github.com/objwghd-maker/9746953489E2/raw/refs/heads/main/video_20261015_002902.mp3"></audio>
         <div class="restoreControls"><button class="restoreBtn" type="button" data-restore-play="1">▶ เล่นเพลง</button><button class="restoreBtn secondary" type="button" data-restore-loop="1" aria-pressed="true">วนซ้ำ: เปิด</button></div>
         <div class="restoreVolumeRow">
           <label for="restoreVol1">ระดับเสียง</label>
@@ -848,7 +848,7 @@ html.in.guest #inner,html.in.logged #inner{
       <article class="restoreCard">
         <div class="restoreDisc" id="restoreDisc2"><img src="https://i.postimg.cc/JhG35XfW/file-000000009fa08211b7150f91d3a18f19.png" alt="โลโก้แก๊งหมูปิ้ง"></div>
         <div class="restoreTitle">เพลงที่ 2</div>
-        <audio id="restoreAudio2" preload="none" loop src="https://github.com/objwghd-maker/8388440202/raw/refs/heads/main/Screenrecording_20261015_002055.mp3"></audio>
+        <audio id="restoreAudio2" crossorigin="anonymous" preload="none" loop src="https://github.com/objwghd-maker/8388440202/raw/refs/heads/main/Screenrecording_20261015_002055.mp3"></audio>
         <div class="restoreControls"><button class="restoreBtn" type="button" data-restore-play="2">▶ เล่นเพลง</button><button class="restoreBtn secondary" type="button" data-restore-loop="2" aria-pressed="true">วนซ้ำ: เปิด</button></div>
         <div class="restoreVolumeRow">
           <label for="restoreVol2">ระดับเสียง</label>
@@ -3506,4 +3506,24 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
 #siteApp .navitem:hover::after{left:12px;opacity:1}
 #siteApp .navitem#openSignIn{margin-top:20px;border-color:rgba(255,152,0,.5)}
 #siteApp .navitem#guestExit{border-color:rgba(240,68,56,.4);color:#b42318}</style>
+<script id="menu-exclusive">
+(()=>{
+const $=id=>document.getElementById(id);
+const closeDrawer=()=>{$('siteDrawer')?.classList.remove('open')};
+const closeProfile=()=>{$('profileMenu')?.classList.remove('open')};
+const closeBug=()=>{const r=$('reportBugMenu');if(r){r.classList.remove('open');r.hidden=true}};
+const closeDots=()=>{['fishPrepDD','chatPrepDD'].forEach(id=>$(id)?.classList.remove('open'));['fishPrepDots','chatPrepDots'].forEach(id=>{const b=$(id);if(b){b.classList.remove('on');b.setAttribute('aria-expanded','false')}})};
+const closeDock=()=>{const d=$('colorPickerDock');if(d&&d.classList.contains('open'))d.querySelector('.pickerClose')?.click()};
+const hit=(e,s)=>e.target&&e.target.closest&&e.target.closest(s);
+document.addEventListener('click',e=>{
+if(hit(e,'#siteMenuButton')){closeProfile();closeBug();closeDots()}
+else if(hit(e,'#profileBtn')){closeDrawer();closeBug();closeDots();closeDock()}
+else if(hit(e,'#reportBugBtn')){closeDrawer();closeProfile();closeDots();closeDock()}
+else if(hit(e,'#fishPrepDots,#chatPrepDots')){closeDrawer();closeProfile();closeBug();closeDock()}
+else if(!hit(e,'#reportBugMenu')){closeBug()}
+},true);
+$('colorToolToggle')?.addEventListener('change',()=>{if($('colorToolToggle').checked){closeProfile();closeBug();closeDots()}});
+window.addEventListener('hashchange',()=>{if(!/^#?in$/.test(location.hash)){closeDrawer();closeProfile();closeBug();closeDots();closeDock()}});
+})();
+</script>
 </body></html>
