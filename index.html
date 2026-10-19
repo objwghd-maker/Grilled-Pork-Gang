@@ -834,30 +834,17 @@ html.in.guest #inner,html.in.logged #inner{
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
 }
-#page-music .restoreDisc.is-playing,
-#page-music .restoreDisc.is-playing img{
-  -webkit-animation: gmpDiscSpin 4s linear infinite!important;
-  animation: gmpDiscSpin 4s linear infinite!important;
+#page-music .restoreDisc.is-playing{
+  -webkit-animation: gangmooppingSpin 4s linear infinite!important;
+  animation: gangmooppingSpin 4s linear infinite!important;
   -webkit-animation-play-state: running!important;
   animation-play-state: running!important;
-}
-#page-music .restoreDisc.is-playing{
   box-shadow:0 0 28px rgba(255,152,0,.72),0 0 45px rgba(32,182,74,.28);
 }
-@-webkit-keyframes gmpDiscSpin{
-  from{-webkit-transform:rotate(0deg);transform:rotate(0deg)}
-  to{-webkit-transform:rotate(360deg);transform:rotate(360deg)}
-}
-@keyframes gmpDiscSpin{
-  from{-webkit-transform:rotate(0deg);transform:rotate(0deg)}
-  to{-webkit-transform:rotate(360deg);transform:rotate(360deg)}
-}
-/* บังคับหมุนแม้เครื่องเปิดลดแอนิเมชัน — หมวดเพลงต้องการหมุนจริง */
 @media (prefers-reduced-motion: reduce){
-  #page-music .restoreDisc.is-playing,
-  #page-music .restoreDisc.is-playing img{
-    -webkit-animation: gmpDiscSpin 4s linear infinite!important;
-    animation: gmpDiscSpin 4s linear infinite!important;
+  #page-music .restoreDisc.is-playing{
+    -webkit-animation: gangmooppingSpin 4s linear infinite!important;
+    animation: gangmooppingSpin 4s linear infinite!important;
     animation-duration: 4s!important;
     animation-iteration-count: infinite!important;
   }
@@ -893,6 +880,37 @@ html.in.guest #inner,html.in.logged #inner{
 /* หน้าหมวดที่เปิดอยู่ — เรืองแสงขอบนุ่มๆ */
 #siteApp .page.active{
   box-shadow: inset 0 0 40px color-mix(in srgb, var(--gmp-accent) 8%, transparent);
+}
+</style>
+
+<style id="gmp-landing-kill-hard">
+/* ตอนอยู่ในเว็บ — ฆ่าหน้าเข้าให้หมด ห้ามซ้อน */
+html.in #bg,
+html.in #go,
+html.in #entryLoader,
+html.in body > h1,
+html.in > body > h1{
+  display:none!important;
+  visibility:hidden!important;
+  opacity:0!important;
+  pointer-events:none!important;
+  z-index:-9999!important;
+  width:0!important;
+  height:0!important;
+  overflow:hidden!important;
+  position:fixed!important;
+  left:-9999px!important;
+  top:-9999px!important;
+  clip:rect(0,0,0,0)!important;
+}
+html.in #siteApp{
+  display:block!important;
+  visibility:visible!important;
+  position:relative;
+  z-index:1;
+}
+html:not(.in) #siteApp{
+  /* นอกเว็บไม่โชว์ siteApp ถ้ายังไม่เข้า */
 }
 </style>
 </head>
@@ -957,7 +975,7 @@ html.in.guest #inner,html.in.logged #inner{
       <article class="restoreCard">
         <div class="restoreDisc" id="restoreDisc1"><img src="https://i.postimg.cc/JhG35XfW/file-000000009fa08211b7150f91d3a18f19.png" alt="โลโก้แก๊งหมูปิ้ง"></div>
         <div class="restoreTitle">เพลงที่ 1</div>
-        <audio id="restoreAudio1" preload="none" loop src="https://raw.githubusercontent.com/objwghd-maker/9746953489E2/refs/heads/main/video_20261015_002902.mp3"></audio>
+        <audio id="restoreAudio1" preload="auto" loop crossorigin="anonymous" src="https://raw.githubusercontent.com/objwghd-maker/9746953489E2/refs/heads/main/video_20261015_002902.mp3"></audio>
         <div class="restoreControls"><button class="restoreBtn" type="button" data-restore-play="1">▶ เล่นเพลง</button><button class="restoreBtn secondary" type="button" data-restore-loop="1" aria-pressed="true">วนซ้ำ: เปิด</button></div>
         <div class="restoreVolumeRow">
           <label for="restoreVol1">ระดับเสียง</label>
@@ -969,7 +987,7 @@ html.in.guest #inner,html.in.logged #inner{
       <article class="restoreCard">
         <div class="restoreDisc" id="restoreDisc2"><img src="https://i.postimg.cc/JhG35XfW/file-000000009fa08211b7150f91d3a18f19.png" alt="โลโก้แก๊งหมูปิ้ง"></div>
         <div class="restoreTitle">เพลงที่ 2</div>
-        <audio id="restoreAudio2" preload="none" loop src="https://raw.githubusercontent.com/objwghd-maker/8388440202/refs/heads/main/Screenrecording_20261015_002055.mp3"></audio>
+        <audio id="restoreAudio2" preload="auto" loop crossorigin="anonymous" src="https://raw.githubusercontent.com/objwghd-maker/8388440202/refs/heads/main/Screenrecording_20261015_002055.mp3"></audio>
         <div class="restoreControls"><button class="restoreBtn" type="button" data-restore-play="2">▶ เล่นเพลง</button><button class="restoreBtn secondary" type="button" data-restore-loop="2" aria-pressed="true">วนซ้ำ: เปิด</button></div>
         <div class="restoreVolumeRow">
           <label for="restoreVol2">ระดับเสียง</label>
@@ -993,7 +1011,7 @@ html.in.guest #inner,html.in.logged #inner{
             <button type="button" class="restoreBtn" id="restoreClipUncover">เปิดคลิป</button>
           </div>
         </div>
-        <audio id="restoreLinkAudio" preload="none" style="display:none"></audio>
+        <audio id="restoreLinkAudio" preload="none" crossorigin="anonymous" style="display:none"></audio>
         <div class="restoreVolumeRow">
           <label for="restoreVol3">ระดับเสียง</label>
           <input type="range" id="restoreVol3" min="1" max="200" value="100" aria-label="ระดับเสียงเพลงจากลิงก์">
@@ -2783,6 +2801,12 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
   function showPage(name){
     if(!name) name = 'home';
     clearAllOverlays({ toPage: name });
+    try{ if(typeof window.gmpHideLandingHard==='function') window.gmpHideLandingHard(); }catch(e){}
+    try{
+      if(document.documentElement.classList.contains('in')){
+        ['bg','go','entryLoader'].forEach(id=>{ const el=document.getElementById(id); if(!el) return; el.hidden=true; el.style.display='none'; el.style.visibility='hidden'; el.style.pointerEvents='none'; el.style.opacity='0'; });
+      }
+    }catch(e){}
 
     document.querySelectorAll('#siteApp .page').forEach(p=>{
       const on = p.id === 'page-' + name;
@@ -3128,18 +3152,16 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
     ['bg','go','entryLoader'].forEach(id=>{
       const el = $(id);
       if(!el) return;
-      el.style.display = 'none';
-      el.style.visibility = 'hidden';
-      el.style.pointerEvents = 'none';
+      el.style.cssText = 'display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;position:fixed!important;left:-9999px!important;top:-9999px!important;width:0!important;height:0!important;z-index:-9999!important';
       el.setAttribute('aria-hidden','true');
+      el.hidden = true;
     });
-    // h1 ลูกตรงของ body เท่านั้น (หัวข้อหน้าเข้าเว็บ)
     try{
       [...document.body.children].forEach(el=>{
         if(el.tagName === 'H1'){
-          el.style.display = 'none';
-          el.style.visibility = 'hidden';
+          el.style.cssText = 'display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;position:fixed!important;left:-9999px!important;z-index:-9999!important';
           el.setAttribute('aria-hidden','true');
+          el.hidden = true;
         }
       });
     }catch(e){}
@@ -3281,6 +3303,7 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
     const ctx = ensureCtx();
     if (!ctx) return null;
     try {
+      try { el.crossOrigin = 'anonymous'; } catch(e){}
       if (!mediaSources[key]) mediaSources[key] = ctx.createMediaElementSource(el);
       const g = ctx.createGain();
       mediaSources[key].connect(g);
@@ -3290,11 +3313,12 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
       el.volume = 1;
       return g;
     } catch(e) {
+      console.warn('wireGain fail', e);
       return null;
     }
   }
 
-  function applyVol(n, pct){
+  function applyVol(n, pct, allowWire){
     volMap[n] = Math.max(1, Math.min(200, Math.round(Number(pct) || 100)));
     saveVolMap(volMap);
     const valEl = $('restoreVolVal' + n);
@@ -3303,19 +3327,22 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
 
     function applyToEl(key, el){
       if (!el) return;
-      if (volMap[n] <= 100) {
-        // ไม่แตะ Web Audio — ใช้ volume ปกติ ชัดเจนทุกเครื่อง
-        el.volume = Math.min(1, linear);
-      } else {
-        // เกิน 100 ใช้ GainNode
+      // ถ้าเคย wire gain แล้ว ต้องใช้ gain ตลอด
+      if (gainWired[key]) {
+        try { gainNodes[key].gain.value = linear; } catch(e){}
+        el.volume = 1;
+        return;
+      }
+      if (volMap[n] > 100 && allowWire) {
         const g = wireGain(key, el);
         if (g) {
           try { g.gain.value = linear; } catch(e){}
           el.volume = 1;
-        } else {
-          el.volume = 1;
+          return;
         }
       }
+      // ปกติ: ใช้ volume ของ audio element (สูงสุด 100%)
+      el.volume = Math.min(1, linear);
     }
 
     if (n === 1 || n === 2) applyToEl(String(n), audios[n]);
@@ -3337,9 +3364,17 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
     slider.value = String(volMap[n] ?? 100);
     const valEl = $('restoreVolVal' + n);
     if (valEl) valEl.textContent = String(volMap[n] ?? 100);
-    applyVol(n, volMap[n] ?? 100);
-    slider.addEventListener('input', () => applyVol(n, slider.value));
-    slider.addEventListener('change', () => applyVol(n, slider.value));
+    // init: ใช้แค่ element.volume ไม่ wire gain ตอนโหลดหน้า
+    const el = n === 3 ? linkAudio : audios[n];
+    if (el) el.volume = Math.min(1, Math.max(0.01, (volMap[n] ?? 100) / 100));
+    slider.addEventListener('input', () => {
+      const playing = n === 3 ? linkPlaying : (audios[n] && !audios[n].paused);
+      applyVol(n, slider.value, !!playing);
+    });
+    slider.addEventListener('change', () => {
+      const playing = n === 3 ? linkPlaying : (audios[n] && !audios[n].paused);
+      applyVol(n, slider.value, !!playing);
+    });
   });
 
   function state(n, playing){
@@ -3400,41 +3435,6 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
     if (!show && clipCover) clipCover.hidden = true;
   }
 
-  function ensureYtApi(cb){
-    if (window.YT && window.YT.Player) { cb(); return; }
-    const prev = window.onYouTubeIframeAPIReady;
-    window.onYouTubeIframeAPIReady = function(){
-      try { if (typeof prev === 'function') prev(); } catch(e){}
-      cb();
-    };
-    if (!document.getElementById('gmp-yt-api')) {
-      const s = document.createElement('script');
-      s.id = 'gmp-yt-api';
-      s.src = 'https://www.youtube.com/iframe_api';
-      document.head.appendChild(s);
-    }
-  }
-  function mountYt(id){
-    if (!ytFrame) return;
-    ytFrame.innerHTML = '<div id="gmpYtPlayerMount"></div>';
-    ensureYtApi(() => {
-      try {
-        ytPlayer = new YT.Player('gmpYtPlayerMount', {
-          videoId: id,
-          playerVars: { autoplay: 1, playsinline: 1, rel: 0 },
-          events: {
-            onReady: (ev) => {
-              try { ev.target.setVolume(Math.min(100, volMap[3] ?? 100)); } catch(e){}
-              try { ev.target.playVideo(); } catch(e){}
-            }
-          }
-        });
-      } catch(e) {
-        ytFrame.innerHTML = '<iframe title="YouTube music player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen playsinline src="https://www.youtube-nocookie.com/embed/' + encodeURIComponent(id) + '?autoplay=1&playsinline=1"></iframe>';
-      }
-    });
-  }
-
   if (linkInput) {
     const saveLink = () => { try { localStorage.setItem(LINK_KEY, linkInput.value.trim()); } catch(e){} };
     linkInput.addEventListener('change', saveLink);
@@ -3445,9 +3445,14 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
 
   Object.entries(audios).forEach(([n, a]) => {
     if (!a) return;
+    try { a.crossOrigin = 'anonymous'; } catch(e){}
+    // บังคับโหลดใหม่หลังตั้ง crossOrigin เพื่อให้ CORS ใช้ได้กับ Web Audio
+    try {
+      const s = a.getAttribute('src') || a.src;
+      if (s) { a.load(); }
+    } catch(e){}
+    a.volume = Math.min(1, Math.max(0.01, (volMap[n] ?? 100) / 100));
     a.addEventListener('play', () => {
-      try { ensureCtx(); } catch(e){}
-      applyVol(n, volMap[n] ?? 100);
       Object.entries(audios).forEach(([other, b]) => { if (other !== n && b) b.pause(); });
       stopLinkPlayers();
       state(n, true);
@@ -3475,14 +3480,46 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
       if (!a.paused) { a.pause(); return; }
       stopLinkPlayers();
       Object.values(audios).forEach(other => { if (other && other !== a) other.pause(); });
+      try { a.crossOrigin = 'anonymous'; } catch(e){}
+      // resume audio context ถ้ามี (user gesture)
       try { ensureCtx(); } catch(e){}
-      applyVol(n, volMap[n] ?? 100);
+      const pct = volMap[n] ?? 100;
+      if (pct > 100) {
+        const g = wireGain(String(n), a);
+        if (g) {
+          try { g.gain.value = pct / 100; } catch(e){}
+          a.volume = 1;
+        } else {
+          // wire ไม่ได้ → ใช้ volume ปกติสูงสุด 100%
+          a.volume = 1;
+        }
+      } else {
+        a.volume = Math.max(0.01, Math.min(1, pct / 100));
+      }
+      const st = $('restoreStatus' + n);
       try {
+        if (a.readyState < 2) {
+          try { a.load(); } catch(e){}
+        }
         await a.play();
+        if (st) st.textContent = 'กำลังเล่น';
+        state(n, true);
       } catch(e) {
-        const st = $('restoreStatus' + n);
-        if (st) st.textContent = 'เปิดเสียงไม่ได้';
-        state(n, false);
+        console.warn('play fail', e);
+        // retry ครั้งเดียวแบบไม่ใช้ gain
+        try {
+          if (gainWired[String(n)]) {
+            // ปล่อยให้เล่นผ่าน native ถ้า gain พัง (อาจเงียบแล้ว)
+          }
+          a.volume = Math.max(0.5, Math.min(1, (pct > 100 ? 1 : pct / 100)));
+          await a.play();
+          if (st) st.textContent = 'กำลังเล่น';
+          state(n, true);
+        } catch(e2) {
+          console.warn('play retry fail', e2);
+          if (st) st.textContent = 'เปิดเสียงไม่ได้';
+          state(n, false);
+        }
       }
     });
   });
@@ -3524,7 +3561,7 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
 
       if (linkAudio) {
         try {
-          try { ensureCtx(); } catch(e){}
+          if ((volMap[3] ?? 100) > 100) wireGain('3a', linkAudio);
           applyVol(3, volMap[3] ?? 100);
           linkAudio.src = raw;
           await linkAudio.play();
@@ -3882,5 +3919,41 @@ window.addEventListener('hashchange',()=>{if(!/^#?in$/.test(location.hash)){clos
 #gmpCopyMenu button:hover{background:#ffffff18}
 #gmpCopyMenu button+button{border-top:1px solid #ffffff18}
 </style>
+
+
+<script id="gmp-landing-kill-on-nav">
+(()=>{
+  function kill(){
+    if(!document.documentElement.classList.contains('in')) return;
+    ['bg','go','entryLoader'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(!el) return;
+      el.hidden=true;
+      el.style.setProperty('display','none','important');
+      el.style.setProperty('visibility','hidden','important');
+      el.style.setProperty('opacity','0','important');
+      el.style.setProperty('pointer-events','none','important');
+      el.style.setProperty('z-index','-9999','important');
+    });
+    [...document.body.children].forEach(el=>{
+      if(el.tagName==='H1'){
+        el.hidden=true;
+        el.style.setProperty('display','none','important');
+        el.style.setProperty('visibility','hidden','important');
+      }
+    });
+  }
+  window.addEventListener('popstate', ()=> setTimeout(kill, 0));
+  window.addEventListener('pageshow', ()=> setTimeout(kill, 0));
+  window.addEventListener('hashchange', ()=> setTimeout(kill, 0));
+  document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') kill(); });
+  setInterval(kill, 1500);
+  // ดักปุ่มย้อนกลับเบราว์เซอร์
+  window.addEventListener('pagehide', kill);
+  setTimeout(kill, 100);
+  setTimeout(kill, 500);
+  setTimeout(kill, 1200);
+})();
+</script>
 
 </body></html>
