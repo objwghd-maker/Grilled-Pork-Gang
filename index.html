@@ -836,8 +836,8 @@ html.in.guest #inner,html.in.logged #inner{
 }
 #page-music .restoreDisc.is-playing,
 #page-music .restoreDisc.is-playing img{
-  -webkit-animation: gmpDiscSpin 3.5s linear infinite!important;
-  animation: gmpDiscSpin 3.5s linear infinite!important;
+  -webkit-animation: gmpDiscSpin 4s linear infinite!important;
+  animation: gmpDiscSpin 4s linear infinite!important;
   -webkit-animation-play-state: running!important;
   animation-play-state: running!important;
 }
@@ -856,11 +856,43 @@ html.in.guest #inner,html.in.logged #inner{
 @media (prefers-reduced-motion: reduce){
   #page-music .restoreDisc.is-playing,
   #page-music .restoreDisc.is-playing img{
-    -webkit-animation: gmpDiscSpin 3.5s linear infinite!important;
-    animation: gmpDiscSpin 3.5s linear infinite!important;
-    animation-duration: 3.5s!important;
+    -webkit-animation: gmpDiscSpin 4s linear infinite!important;
+    animation: gmpDiscSpin 4s linear infinite!important;
+    animation-duration: 4s!important;
     animation-iteration-count: infinite!important;
   }
+}
+</style>
+
+<style id="gmp-nav-category-glow">
+#siteApp .navitem{
+  position:relative;
+  transition: box-shadow .25s ease, background .2s ease, border-color .2s ease, transform .15s ease;
+}
+#siteApp .navitem.active{
+  border-color: color-mix(in srgb, var(--gmp-accent) 55%, transparent)!important;
+  background: color-mix(in srgb, var(--gmp-accent) 16%, #fff)!important;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--gmp-accent) 45%, transparent),
+    0 0 14px color-mix(in srgb, var(--gmp-accent) 35%, transparent),
+    0 0 28px color-mix(in srgb, var(--gmp-accent) 18%, transparent),
+    inset 0 0 12px color-mix(in srgb, var(--gmp-accent) 10%, transparent)!important;
+  color: #111;
+  font-weight: 800;
+}
+#siteApp .navitem.active::after{
+  opacity:1;
+  filter: drop-shadow(0 0 4px var(--gmp-accent));
+}
+#siteApp .navitem.is-pressing{
+  transform: scale(.98);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--gmp-accent) 60%, transparent),
+    0 0 18px color-mix(in srgb, var(--gmp-accent) 40%, transparent)!important;
+}
+/* หน้าหมวดที่เปิดอยู่ — เรืองแสงขอบนุ่มๆ */
+#siteApp .page.active{
+  box-shadow: inset 0 0 40px color-mix(in srgb, var(--gmp-accent) 8%, transparent);
 }
 </style>
 </head>
@@ -1838,6 +1870,7 @@ $("avatarFile").addEventListener("change", async event => {
       renderUser(currentUser);
       selectedAvatarFile = null;
       status.textContent = "บันทึกรูปแล้ว";
+      try { $("profileMenu")?.classList.remove("open"); } catch(_){}
     } catch(err) {
       status.textContent = "บันทึกในเครื่องแล้ว";
       renderUser(currentUser);
@@ -1900,6 +1933,7 @@ $("saveProfile").onclick = async () => {
     selectedAvatarFile = null;
     try { $("avatarFile").value = ""; } catch(_){}
     status.textContent = onlineSaved ? "บันทึกโปรไฟล์แล้ว" : "บันทึกในอุปกรณ์นี้แล้ว";
+    try { $("profileMenu")?.classList.remove("open"); } catch(_){}
   } catch(err) {
     status.textContent = "บันทึกในอุปกรณ์นี้แล้ว";
     try { renderUser(user); } catch(_){}
@@ -2753,14 +2787,21 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
     document.querySelectorAll('#siteApp .page').forEach(p=>{
       const on = p.id === 'page-' + name;
       p.classList.toggle('active', on);
-      // บังคับไม่ให้หน้าอื่นโชว์ซ้อน
       if(on){
         p.style.display = '';
         p.style.visibility = 'visible';
       } else {
-        // ปล่อยให้ CSS .page จัดการ (display:none) — เคลียร์ inline ที่อาจค้าง
         p.style.removeProperty('display');
         p.style.removeProperty('visibility');
+      }
+    });
+    // ไฮไลต์เมนูหมวดที่เลือก — เรืองแสง
+    document.querySelectorAll('#siteApp .navitem[data-page]').forEach(btn=>{
+      const on = btn.getAttribute('data-page') === name;
+      btn.classList.toggle('active', on);
+      if(on){
+        btn.classList.add('is-pressing');
+        setTimeout(()=> btn.classList.remove('is-pressing'), 180);
       }
     });
 
@@ -3197,10 +3238,10 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
   let linkPlaying = false;
   let covered = false;
   let ytPlayer = null;
-
   let audioCtx = null;
-  const gainNodes = {}; // n -> GainNode
-  const mediaSources = {}; // n -> MediaElementSource (สร้างครั้งเดียวต่อ element)
+  const gainNodes = {};
+  const mediaSources = {};
+  const gainWired = {};
 
   try { covered = localStorage.getItem(CLIP_COVER_KEY) === '1'; } catch(e){}
   try {
@@ -3213,7 +3254,6 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
       const raw = localStorage.getItem(VOL_KEY);
       if (raw) return JSON.parse(raw);
     } catch(e){}
-    // migrate old key
     try {
       const old = localStorage.getItem('gangmoopping_music_vol_v1');
       if (old) return JSON.parse(old);
@@ -3224,46 +3264,34 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
     try { localStorage.setItem(VOL_KEY, JSON.stringify(map)); } catch(e){}
   }
   let volMap = loadVolMap();
-  // clamp stored values to 1–200
   [1,2,3].forEach(n => { volMap[n] = Math.max(1, Math.min(200, Math.round(Number(volMap[n]) || 100))); });
 
   function ensureCtx(){
-    if (!audioCtx) {
-      const AC = window.AudioContext || window.webkitAudioContext;
-      if (!AC) return null;
-      audioCtx = new AC();
-    }
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    if (!audioCtx) audioCtx = new AC();
     if (audioCtx.state === 'suspended') {
       try { audioCtx.resume(); } catch(e){}
     }
     return audioCtx;
   }
 
-  /** ผูก <audio> เข้า GainNode ครั้งเดียว — volume element = 1, ปรับที่ gain */
-  function ensureGainFor(n, el){
-    if (!el) return null;
+  function wireGain(key, el){
+    if (!el || gainWired[key]) return gainNodes[key] || null;
     const ctx = ensureCtx();
     if (!ctx) return null;
-    if (gainNodes[n]) return gainNodes[n];
     try {
-      // MediaElementSource ผูกได้ครั้งเดียวต่อ element
-      if (!mediaSources[n]) {
-        mediaSources[n] = ctx.createMediaElementSource(el);
-      }
+      if (!mediaSources[key]) mediaSources[key] = ctx.createMediaElementSource(el);
       const g = ctx.createGain();
-      mediaSources[n].connect(g);
-      const lim=ctx.createDynamicsCompressor();lim.threshold.value=-2;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=0.003;lim.release.value=0.1;g.connect(lim);lim.connect(ctx.destination);
-      gainNodes[n] = g;
-          el.volume = 1;
+      mediaSources[key].connect(g);
+      g.connect(ctx.destination);
+      gainNodes[key] = g;
+      gainWired[key] = true;
+      el.volume = 1;
       return g;
     } catch(e) {
-      console.warn('gain setup', n, e);
       return null;
     }
-  }
-
-  function pctToLinear(pct){
-    return Math.max(0.01, Math.min(2, (Number(pct) || 100) / 100));
   }
 
   function applyVol(n, pct){
@@ -3271,29 +3299,28 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
     saveVolMap(volMap);
     const valEl = $('restoreVolVal' + n);
     if (valEl) valEl.textContent = String(volMap[n]);
-    const linear = pctToLinear(volMap[n]);
+    const linear = Math.max(0.01, Math.min(2, volMap[n] / 100));
 
-    if (n === 1 || n === 2) {
-      const a = audios[n];
-      if (!a) return;
-      const g = ensureGainFor(n, a);
-      if (g) {
-        try { g.gain.value = linear; } catch(e){}
-        a.volume = 1;
+    function applyToEl(key, el){
+      if (!el) return;
+      if (volMap[n] <= 100) {
+        // ไม่แตะ Web Audio — ใช้ volume ปกติ ชัดเจนทุกเครื่อง
+        el.volume = Math.min(1, linear);
       } else {
-        a.volume = Math.min(1, linear);
-      }
-    }
-    if (n === 3) {
-      if (linkAudio) {
-        const g = ensureGainFor('3a', linkAudio);
+        // เกิน 100 ใช้ GainNode
+        const g = wireGain(key, el);
         if (g) {
           try { g.gain.value = linear; } catch(e){}
-          linkAudio.volume = 1;
+          el.volume = 1;
         } else {
-          linkAudio.volume = Math.min(1, linear);
+          el.volume = 1;
         }
       }
+    }
+
+    if (n === 1 || n === 2) applyToEl(String(n), audios[n]);
+    if (n === 3) {
+      applyToEl('3a', linkAudio);
       try {
         if (ytPlayer && typeof ytPlayer.setVolume === 'function') {
           ytPlayer.setVolume(Math.min(100, volMap[n]));
@@ -3419,8 +3446,7 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
   Object.entries(audios).forEach(([n, a]) => {
     if (!a) return;
     a.addEventListener('play', () => {
-      ensureCtx();
-      ensureGainFor(n, a);
+      try { ensureCtx(); } catch(e){}
       applyVol(n, volMap[n] ?? 100);
       Object.entries(audios).forEach(([other, b]) => { if (other !== n && b) b.pause(); });
       stopLinkPlayers();
@@ -3449,8 +3475,7 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
       if (!a.paused) { a.pause(); return; }
       stopLinkPlayers();
       Object.values(audios).forEach(other => { if (other && other !== a) other.pause(); });
-      ensureCtx();
-      ensureGainFor(n, a);
+      try { ensureCtx(); } catch(e){}
       applyVol(n, volMap[n] ?? 100);
       try {
         await a.play();
@@ -3487,12 +3512,11 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
 
       const id = ytId(raw);
       if (id) {
-        if (!ytFrame) { if (linkStatus) linkStatus.textContent = 'ไม่พบช่องเล่นคลิป'; return; }
+        if (!ytFrame) { if (linkStatus) linkStatus.textContent = 'เล่นไม่ได้'; return; }
         linkPlaying = true;
         state(3, true);
         showClipArea(true);
         setCover(false);
-        const v = volMap[3] ?? 100;
         if (linkStatus) linkStatus.textContent = 'กำลังเล่น';
         mountYt(id);
         return;
@@ -3500,14 +3524,12 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
 
       if (linkAudio) {
         try {
-          ensureCtx();
-          ensureGainFor('3a', linkAudio);
+          try { ensureCtx(); } catch(e){}
           applyVol(3, volMap[3] ?? 100);
           linkAudio.src = raw;
           await linkAudio.play();
           linkPlaying = true;
           state(3, true);
-          const v = volMap[3] ?? 100;
           if (linkStatus) linkStatus.textContent = 'กำลังเล่น';
         } catch(e) {
           linkPlaying = false;
@@ -3515,7 +3537,7 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
           if (linkStatus) linkStatus.textContent = 'เล่นไม่ได้';
         }
       } else if (linkStatus) {
-        linkStatus.textContent = 'ไม่พบเครื่องเล่นเสียง';
+        linkStatus.textContent = 'เล่นไม่ได้';
       }
     });
   }
@@ -3527,7 +3549,7 @@ html.fish-fullscreen,html.fish-fullscreen body{width:100%!important;height:100%!
     linkAudio.addEventListener('error', () => {
       if (linkPlaying) {
         linkPlaying = false; state(3, false);
-        if (linkStatus) linkStatus.textContent = 'เล่นไฟล์เสียงไม่ได้';
+        if (linkStatus) linkStatus.textContent = 'เล่นไม่ได้';
       }
     });
   }
